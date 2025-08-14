@@ -8,17 +8,44 @@ from io import BytesIO
 import base64
 from fpdf import FPDF
 from flask_sqlalchemy import SQLAlchemy
+from contextlib import contextmanager
+import logging
+from logging.handlers import RotatingFileHandler
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = 'your_very_secret_key_here_12345'
+app.secret_key = os.getenv('SECRET_KEY', 'your_very_secret_key_here_12345')
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['ALLOWED_EXTENSIONS'] = {'xlsx', 'xls'}
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///presences.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///presences.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5MB upload limit
+
+# Configure logging
+handler = RotatingFileHandler('app.log', maxBytes=10000, backupCount=1)
+handler.setLevel(logging.INFO)
+app.logger.addHandler(handler)
 
 db = SQLAlchemy(app)
 
-# Modèles de données
+# Database session context manager
+@contextmanager
+def db_session():
+    session = db.session()
+    try:
+        yield session
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        app.logger.error(f"Database error: {str(e)}")
+        raise
+    finally:
+        session.close()
+
+# Models
 class Course(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
@@ -59,64 +86,91 @@ class PDF(FPDF):
         self.set_font('Arial', 'I', 8)
         self.cell(0, 10, f'Page {self.page_no()}', 0, 0, 'C')
 
+# Helper functions
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
-
-@app.route('/')
-def dashboard():
-    courses = Course.query.order_by(Course.name).all()
-    return render_template('dashboard.html', courses=courses, now=datetime.now())
-from datetime import datetime
 
 @app.template_filter('format_date')
 def format_date_filter(date_obj):
     """Format a date object to French format (DD/MM/YYYY)"""
     if isinstance(date_obj, (date, datetime)):
         return date_obj.strftime("%d/%m/%Y")
-    return str(date_obj)  # fallback for non-date objects
-# @app.template_filter('format_date')
-# def format_date_filter(date_obj):
-#     if isinstance(date_obj, date):
-#         return date_obj.strftime("%d/%m/%Y")
-#     return date_obj
+    return str(date_obj)
 
+# Routes
+@app.route('/')
+def dashboard():
+    try:
+        # Keep the session open for the duration of the request
+        courses = db.session.query(Course).order_by(Course.name).all()
+        return render_template('dashboard.html', courses=courses, now=datetime.now())
+    except Exception as e:
+        app.logger.error(f"Error in dashboard: {str(e)}")
+        flash('Error loading dashboard', 'error')
+        return redirect(url_for('index'))
+    
 @app.route('/add_course', methods=['POST'])
 def add_course():
-    course_name = request.form.get('course_name')
-    if course_name and course_name.strip():
-        try:
-            course = Course(name=course_name)
-            db.session.add(course)
-            db.session.commit()
-            flash(f'Cours "{course_name}" ajouté avec succès!', 'success')
-        except:
-            db.session.rollback()
-            flash('Ce cours existe déjà', 'error')
-    else:
+    course_name = request.form.get('course_name', '').strip()
+    if not course_name:
         flash('Nom de cours invalide', 'error')
+        return redirect(url_for('dashboard'))
+    
+    try:
+        with db_session() as session:
+            if session.query(Course).filter_by(name=course_name).first():
+                flash('Ce cours existe déjà', 'error')
+                return redirect(url_for('dashboard'))
+            
+            course = Course(name=course_name)
+            session.add(course)
+        flash(f'Cours "{course_name}" ajouté avec succès!', 'success')
+    except Exception as e:
+        app.logger.error(f"Error adding course: {str(e)}")
+        flash('Erreur lors de l\'ajout du cours', 'error')
+    
+    return redirect(url_for('dashboard'))
+
+@app.route('/courses/delete/<int:course_id>', methods=['POST'])
+def delete_course(course_id):
+    try:
+        with db_session() as session:
+            course = session.query(Course).get_or_404(course_id)
+            session.delete(course)
+        flash('Cours supprimé avec succès!', 'success')
+    except Exception as e:
+        app.logger.error(f"Error deleting course: {str(e)}")
+        flash('Erreur lors de la suppression du cours', 'error')
+    
     return redirect(url_for('dashboard'))
 
 @app.route('/course/<course_name>')
 def course(course_name):
-    course = Course.query.filter_by(name=course_name).first()
-    if not course:
-        flash('Cours non trouvé', 'error')
+    try:
+        with db_session() as session:
+            course = session.query(Course).filter_by(name=course_name).first()
+            if not course:
+                flash('Cours non trouvé', 'error')
+                return redirect(url_for('dashboard'))
+            
+            dates = session.query(Attendance.date)\
+                     .filter_by(course_id=course.id)\
+                     .distinct()\
+                     .order_by(Attendance.date.desc())\
+                     .all()
+            
+            dates = [d[0] for d in dates]
+            
+        return render_template('course.html', 
+                             course=course,
+                             dates=dates,
+                             now=datetime.now())
+    except Exception as e:
+        app.logger.error(f"Error accessing course: {str(e)}")
+        flash('Erreur lors de l\'accès au cours', 'error')
         return redirect(url_for('dashboard'))
-    
-    # Récupérer les dates distinctes des séances
-    dates = db.session.query(Attendance.date)\
-             .filter_by(course_id=course.id)\
-             .distinct()\
-             .order_by(Attendance.date.desc())\
-             .all()
-    
-    dates = [d[0] for d in dates]  # Extraire les dates du résultat
-    
-    return render_template('course.html', 
-                         course=course,
-                         dates=dates,
-                         now=datetime.now())
+
 
 @app.route('/upload_students/<course_name>', methods=['GET', 'POST'])
 def upload_students(course_name):
@@ -378,6 +432,12 @@ with app.app_context():
 
 # if __name__ == '__main__':
 #     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-#     app.run(debug=True, host='0.0.0.0', port=5000)
+# #     app.run(debug=True, host='0.0.0.0', port=5000)
+# if __name__ == '__main__':
+#     app.run(debug=True, host='0.0.0.0', port=5001)  # Changer le port si nécessaire
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5001)  # Changer le port si nécessaire
+    with app.app_context():
+        db.create_all()
+        os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+    
+    app.run(host='0.0.0.0', port=int(os.getenv('PORT', 5000)))

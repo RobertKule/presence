@@ -3,61 +3,75 @@
 {% block title %}Importer étudiants - {{ course.name }}{% endblock %}
 
 {% block content %}
-<div class="container-lg">
+<div class="container-fluid px-4">
     <!-- En-tête -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0">
-            <i class="bi bi-people-fill text-primary me-2"></i>
-            Gestion des étudiants - {{ course.name }}
-        </h1>
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+        <div>
+            <h1 class="h3 mb-1 fw-bold">
+                <i class="bi bi-people-fill text-primary me-2"></i>
+                Gestion des étudiants - {{ course.name }}
+            </h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('course', course_name=course.name) }}">{{ course.name }}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Importer étudiants</li>
+                </ol>
+            </nav>
+        </div>
         <a href="{{ url_for('course', course_name=course.name) }}" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left me-1"></i> Retour
         </a>
     </div>
 
     <!-- Carte d'importation -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <h2 class="h5 mb-0">
-                <i class="bi bi-upload me-2"></i>
-                Importer depuis Excel
-            </h2>
-            <span class="badge bg-white text-primary">Format requis</span>
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-transparent border-0 py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="h5 mb-0 d-flex align-items-center">
+                    <i class="bi bi-cloud-arrow-up-fill text-primary me-2"></i>
+                    Importer depuis Excel
+                </h2>
+                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill">
+                    Format requis
+                </span>
+            </div>
         </div>
         
-        <div class="card-body">
+        <div class="card-body pt-0">
             <form method="POST" action="{{ url_for('upload_students', course_name=course.name) }}" 
-                  enctype="multipart/form-data" id="uploadForm">
+                  enctype="multipart/form-data" id="uploadForm" class="needs-validation" novalidate>
                 
                 <!-- Input fichier -->
-                <div class="mb-3">
-                    <label for="excelFile" class="form-label fw-bold">
-                        <i class="bi bi-file-earmark-excel text-success me-2"></i>
+                <div class="mb-4">
+                    <label for="excelFile" class="form-label fw-bold d-flex align-items-center">
+                        <i class="bi bi-file-earmark-excel-fill text-success me-2 fs-5"></i>
                         Fichier Excel
                     </label>
-                    <input type="file" class="form-control" id="excelFile" name="file" 
-                           accept=".xlsx,.xls" required>
-                    <div class="invalid-feedback">Veuillez sélectionner un fichier valide</div>
-                    <small class="text-muted">Extensions acceptées: .xlsx, .xls (Max 5MB)</small>
+                    <div class="file-input-container">
+                        <input type="file" class="form-control py-3" id="excelFile" name="file" 
+                               accept=".xlsx,.xls" required>
+                        <div class="invalid-feedback">Veuillez sélectionner un fichier Excel valide</div>
+                        <small class="text-muted mt-1 d-block">Extensions acceptées: .xlsx, .xls (Max 5MB)</small>
+                    </div>
                 </div>
 
                 <!-- Aide format -->
-                <div class="alert alert-info mb-4">
+                <div class="alert alert-info bg-opacity-10 border-0 mb-4">
                     <div class="d-flex align-items-start">
-                        <i class="bi bi-info-circle-fill mt-1 me-2"></i>
+                        <i class="bi bi-info-circle-fill text-info mt-1 me-3 fs-5"></i>
                         <div>
-                            <h3 class="h6 mb-2">Structure du fichier requis :</h3>
+                            <h3 class="h6 mb-2 fw-bold">Structure du fichier requis :</h3>
                             <div class="table-responsive">
-                                <table class="table table-sm table-bordered align-middle">
+                                <table class="table table-sm table-bordered align-middle bg-white">
                                     <thead>
-                                        <tr class="table-light">
-                                            <th class="bg-success text-white">Nom complet*</th>
-                                            <th>Matricule</th>
+                                        <tr>
+                                            <th class="bg-success bg-opacity-10 text-success">Nom complet*</th>
+                                            <th class="bg-light">Matricule</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr>
-                                            <td>Jean Dupont</td>
+                                            <td class="fw-bold">Jean Dupont</td>
                                             <td>ET12345</td>
                                         </tr>
                                     </tbody>
@@ -69,10 +83,10 @@
                 </div>
 
                 <!-- Bouton soumission -->
-                <div class="d-flex justify-content-end">
-                    <button type="submit" class="btn btn-primary px-4">
+                <div class="d-flex justify-content-end mt-4">
+                    <button type="submit" class="btn btn-primary px-4 py-2 rounded-pill fw-bold">
                         <i class="bi bi-upload me-2"></i>
-                        Importer
+                        Importer les étudiants
                     </button>
                 </div>
             </form>
@@ -81,37 +95,39 @@
 
     <!-- Liste des étudiants existants -->
     {% if course.students %}
-    <div class="card shadow-sm">
-        <div class="card-header bg-light">
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-transparent border-0 py-3">
             <div class="d-flex justify-content-between align-items-center">
-                <h2 class="h5 mb-0">
+                <h2 class="h5 mb-0 d-flex align-items-center">
                     <i class="bi bi-list-check text-primary me-2"></i>
                     Étudiants existants
                 </h2>
-                <span class="badge bg-primary rounded-pill">
-                    {{ course.students|length }}
+                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2">
+                    {{ course.students|length }} étudiants
                 </span>
             </div>
         </div>
         
-        <div class="card-body p-0">
+        <div class="card-body pt-0">
             <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th width="10%">ID</th>
-                            <th>Nom complet</th>
-                            <th>Matricule</th>
+                <table class="table table-borderless table-hover">
+                    <thead>
+                        <tr class="text-muted border-bottom">
+                            <th class="fw-normal">ID</th>
+                            <th class="fw-normal">Nom complet</th>
+                            <th class="fw-normal">Matricule</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for student in course.students %}
-                        <tr>
-                            <td class="fw-bold text-muted">{{ student.id }}</td>
-                            <td>{{ student.full_name }}</td>
+                        <tr class="border-bottom">
+                            <td class="fw-bold text-muted">#{{ student.id }}</td>
+                            <td class="fw-bold">{{ student.full_name }}</td>
                             <td>
                                 {% if student.matricule %}
-                                <span class="badge bg-secondary">{{ student.matricule }}</span>
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary">
+                                    {{ student.matricule }}
+                                </span>
                                 {% else %}
                                 <span class="text-muted">-</span>
                                 {% endif %}
@@ -129,7 +145,9 @@
 <!-- Validation client -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Validation du formulaire
     const form = document.getElementById('uploadForm');
+    const fileInput = document.getElementById('excelFile');
     
     form.addEventListener('submit', function(event) {
         if (!form.checkValidity()) {
@@ -138,12 +156,64 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         form.classList.add('was-validated');
     }, false);
+
+    // Afficher le nom du fichier sélectionné
+    fileInput.addEventListener('change', function() {
+        const fileName = this.files[0]?.name || 'Aucun fichier sélectionné';
+        const label = this.nextElementSibling?.querySelector('.file-name');
+        if (label) {
+            label.textContent = fileName;
+        }
+    });
 });
 </script>
 
 <style>
+/* Style général */
+.card {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* Style pour l'input fichier */
+.file-input-container {
+    position: relative;
+}
+
+.file-input-container::after {
+    content: "Parcourir";
+    position: absolute;
+    right: 3px;
+    top: 3px;
+    bottom: 3px;
+    padding: 0.375rem 0.75rem;
+    background-color: var(--bs-light);
+    color: var(--bs-body-color);
+    border-radius: 0.375rem;
+    pointer-events: none;
+}
+
+/* Style du tableau */
 .table-hover tbody tr:hover {
-    background-color: rgba(13, 110, 253, 0.05);
+    background-color: rgba(var(--bs-primary-rgb), 0.03) !important;
+}
+
+/* Style des badges */
+.badge {
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+}
+
+/* Style responsive */
+@media (max-width: 768px) {
+    .card-body {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    
+    .table-responsive {
+        border: 0;
+    }
 }
 </style>
 {% endblock %}

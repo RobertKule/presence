@@ -3,80 +3,99 @@
 {% block title %}Faire l'appel - {{ course.name }}{% endblock %}
 
 {% block content %}
-<div class="container-lg">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0">
-            <i class="bi bi-clipboard-check text-primary me-2"></i>
-            Faire l'appel - {{ course.name }}
-        </h1>
+<div class="container-fluid px-4">
+    <!-- Header Section -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+        <div>
+            <h1 class="h3 mb-1 fw-bold">
+                <i class="bi bi-clipboard-check-fill text-primary me-2"></i>
+                Faire l'appel - {{ course.name }}
+            </h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('course', course_name=course.name) }}">{{ course.name }}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Faire l'appel</li>
+                </ol>
+            </nav>
+        </div>
         <a href="{{ url_for('course', course_name=course.name) }}" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left me-1"></i> Retour
         </a>
     </div>
 
     <form method="POST" action="{{ url_for('take_attendance', course_name=course.name) }}" class="needs-validation" novalidate>
-        <div class="card shadow-sm mb-4">
-            <div class="card-header bg-primary text-white">
+        <!-- Session Card -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-transparent border-0 py-3">
                 <div class="row align-items-center">
                     <div class="col-md-6">
-                        <h2 class="h5 mb-0">
-                            <i class="bi bi-calendar-date me-2"></i>
+                        <h2 class="h5 mb-0 d-flex align-items-center">
+                            <i class="bi bi-calendar2-date-fill text-primary me-2"></i>
                             Séance du jour
                         </h2>
                     </div>
                     <div class="col-md-6">
-                        <input type="date" class="form-control bg-white" name="date" value="{{ today }}" required>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0">
+                                <i class="bi bi-calendar3 text-muted"></i>
+                            </span>
+                            <input type="date" class="form-control border-start-0 ps-0" 
+                                   name="date" value="{{ today }}" required>
+                        </div>
                     </div>
                 </div>
             </div>
             
-            <div class="card-body p-0">
+            <!-- Students List -->
+            <div class="card-body pt-0">
                 {% if students %}
                 <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th width="5%">ID</th>
-                                <th width="35%">Nom complet</th>
-                                <th width="20%">Matricule</th>
-                                <th width="40%">Statut</th>
+                    <table class="table table-borderless table-hover">
+                        <thead>
+                            <tr class="text-muted border-bottom">
+                                <th class="fw-normal">ID</th>
+                                <th class="fw-normal">Nom complet</th>
+                                <th class="fw-normal">Matricule</th>
+                                <th class="fw-normal text-end">Statut</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for student in students %}
-                            <tr class="align-middle">
-                                <td class="fw-bold">{{ student.id }}</td>
-                                <td>{{ student.full_name }}</td>
+                            <tr class="border-bottom align-middle">
+                                <td class="fw-bold text-muted">#{{ student.id }}</td>
+                                <td class="fw-bold">{{ student.full_name }}</td>
                                 <td>
-                                    <span class="badge bg-secondary">
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary">
                                         {{ student.matricule if student.matricule else 'N/A' }}
                                     </span>
                                 </td>
                                 <td>
-                                    <div class="btn-group btn-group-sm w-100" role="group">
-                                        <input type="radio" class="btn-check" 
-                                               name="status_{{ student.id }}" 
-                                               id="present_{{ student.id }}" 
-                                               value="present" autocomplete="off" checked>
-                                        <label class="btn btn-outline-success px-3" for="present_{{ student.id }}">
-                                            <i class="bi bi-check-circle me-1"></i>Présent
-                                        </label>
+                                    <div class="d-flex justify-content-end">
+                                        <div class="btn-group btn-group-sm rounded-pill shadow-sm" role="group">
+                                            <input type="radio" class="btn-check" 
+                                                   name="status_{{ student.id }}" 
+                                                   id="present_{{ student.id }}" 
+                                                   value="present" autocomplete="off" checked>
+                                            <label class="btn btn-outline-success px-3" for="present_{{ student.id }}">
+                                                <i class="bi bi-check-circle-fill me-1"></i>Présent
+                                            </label>
 
-                                        <input type="radio" class="btn-check" 
-                                               name="status_{{ student.id }}" 
-                                               id="late_{{ student.id }}" 
-                                               value="late" autocomplete="off">
-                                        <label class="btn btn-outline-warning px-3" for="late_{{ student.id }}">
-                                            <i class="bi bi-clock-history me-1"></i>Retard
-                                        </label>
+                                            <input type="radio" class="btn-check" 
+                                                   name="status_{{ student.id }}" 
+                                                   id="late_{{ student.id }}" 
+                                                   value="late" autocomplete="off">
+                                            <label class="btn btn-outline-warning px-3" for="late_{{ student.id }}">
+                                                <i class="bi bi-clock-fill me-1"></i>Retard
+                                            </label>
 
-                                        <input type="radio" class="btn-check" 
-                                               name="status_{{ student.id }}" 
-                                               id="absent_{{ student.id }}" 
-                                               value="absent" autocomplete="off">
-                                        <label class="btn btn-outline-danger px-3" for="absent_{{ student.id }}">
-                                            <i class="bi bi-x-circle me-1"></i>Absent
-                                        </label>
+                                            <input type="radio" class="btn-check" 
+                                                   name="status_{{ student.id }}" 
+                                                   id="absent_{{ student.id }}" 
+                                                   value="absent" autocomplete="off">
+                                            <label class="btn btn-outline-danger px-3" for="absent_{{ student.id }}">
+                                                <i class="bi bi-x-circle-fill me-1"></i>Absent
+                                            </label>
+                                        </div>
                                     </div>
                                 </td>
                             </tr>
@@ -85,25 +104,43 @@
                     </table>
                 </div>
                 {% else %}
-                <div class="alert alert-warning m-4">
-                    <i class="bi bi-exclamation-triangle me-2"></i>
-                    Aucun étudiant n'a été importé pour ce cours.
-                    <a href="{{ url_for('upload_students', course_name=course.name) }}" class="alert-link">
-                        Importer des étudiants
-                    </a>
+                <div class="alert alert-warning bg-opacity-10 border-0">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-exclamation-triangle-fill text-warning me-3 fs-4"></i>
+                        <div>
+                            <strong>Aucun étudiant importé</strong>
+                            <div class="small">Importez des étudiants pour pouvoir faire l'appel</div>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <a href="{{ url_for('upload_students', course_name=course.name) }}" class="btn btn-sm btn-warning">
+                            <i class="bi bi-upload me-1"></i> Importer des étudiants
+                        </a>
+                    </div>
                 </div>
                 {% endif %}
             </div>
             
-            <div class="card-footer bg-light">
-                <div class="d-flex justify-content-between align-items-center">
-                    <small class="text-muted">
-                        {{ students|length }} étudiant(s) à marquer
-                    </small>
-                    <button type="submit" class="btn btn-primary px-4">
-                        <i class="bi bi-save me-1"></i>
-                        Enregistrer l'appel
-                    </button>
+            <!-- Card Footer -->
+            <div class="card-footer bg-transparent border-0 py-3">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-success" id="markAllPresent">
+                            <i class="bi bi-check-all me-1"></i>Tout présent
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="resetAll">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i>Réinitialiser
+                        </button>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="text-muted small">
+                            <span class="fw-bold">{{ students|length }}</span> étudiant(s)
+                        </span>
+                        <button type="submit" class="btn btn-primary px-4 py-2 rounded-pill fw-bold">
+                            <i class="bi bi-save-fill me-2"></i>
+                            Enregistrer l'appel
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -111,9 +148,8 @@
 </div>
 
 <script>
-// Script pour mémoriser les sélections pendant la session
 document.addEventListener('DOMContentLoaded', function() {
-    // Validation Bootstrap
+    // Bootstrap Validation
     const form = document.querySelector('.needs-validation');
     form.addEventListener('submit', function(event) {
         if (!form.checkValidity()) {
@@ -123,55 +159,82 @@ document.addEventListener('DOMContentLoaded', function() {
         form.classList.add('was-validated');
     }, false);
 
-    // Sauvegarde des sélections en localStorage
+    // Save selections to localStorage
     const radioButtons = document.querySelectorAll('input[type="radio"]');
     radioButtons.forEach(radio => {
-        // Restaurer les sélections précédentes
+        // Restore previous selections
         const savedStatus = localStorage.getItem(`attendance_${radio.name}`);
         if (savedStatus && radio.value === savedStatus) {
             radio.checked = true;
         }
 
-        // Sauvegarder les nouvelles sélections
+        // Save new selections
         radio.addEventListener('change', function() {
             localStorage.setItem(`attendance_${this.name}`, this.value);
         });
     });
 
-    // Bouton pour tout marquer comme présent
-    const markAllPresent = document.createElement('button');
-    markAllPresent.type = 'button';
-    markAllPresent.className = 'btn btn-sm btn-outline-success me-2';
-    markAllPresent.innerHTML = '<i class="bi bi-check-all me-1"></i>Tout présent';
-    markAllPresent.addEventListener('click', function() {
+    // Mark all as present
+    document.getElementById('markAllPresent').addEventListener('click', function() {
         document.querySelectorAll('input[value="present"]').forEach(radio => {
             radio.checked = true;
             localStorage.setItem(`attendance_${radio.name}`, 'present');
         });
     });
 
-    document.querySelector('.card-footer').prepend(markAllPresent);
+    // Reset all selections
+    document.getElementById('resetAll').addEventListener('click', function() {
+        document.querySelectorAll('input[type="radio"]').forEach(radio => {
+            if (radio.value === 'present') {
+                radio.checked = true;
+                localStorage.setItem(`attendance_${radio.name}`, 'present');
+            } else {
+                radio.checked = false;
+            }
+        });
+    });
 });
 </script>
 
 <style>
-.attendance-actions .btn {
-    transition: all 0.2s;
+/* Card styling */
+.card {
+    border-radius: 12px;
+    overflow: hidden;
 }
+
+/* Radio button styling */
 .btn-check:checked + .btn-outline-success {
     background-color: var(--bs-success);
-    color: white;
+    color: white !important;
+    border-color: var(--bs-success);
 }
 .btn-check:checked + .btn-outline-warning {
     background-color: var(--bs-warning);
-    color: black;
+    color: black !important;
+    border-color: var(--bs-warning);
 }
 .btn-check:checked + .btn-outline-danger {
     background-color: var(--bs-danger);
-    color: white;
+    color: white !important;
+    border-color: var(--bs-danger);
 }
-.table-hover tr:hover {
-    background-color: rgba(0, 0, 0, 0.02);
+
+/* Table styling */
+.table-hover tbody tr:hover {
+    background-color: rgba(var(--bs-primary-rgb), 0.03) !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .btn-group {
+        width: 100%;
+    }
+    .btn-group .btn {
+        flex: 1;
+        padding: 0.25rem;
+        font-size: 0.8rem;
+    }
 }
 </style>
 {% endblock %}

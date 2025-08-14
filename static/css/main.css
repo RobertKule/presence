@@ -1,0 +1,146 @@
+:root {
+    --bs-body-bg: #f8f9fa;
+    --bs-body-color: #212529;
+    --card-bg: #ffffff;
+    --card-shadow: rgba(0, 0, 0, 0.1);
+    --sidebar-bg: #343a40;
+    --sidebar-color: #dee2e6;
+}
+
+[data-bs-theme="dark"] {
+    --bs-body-bg: #212529;
+    --bs-body-color: #f8f9fa;
+    --card-bg: #2c3034;
+    --card-shadow: rgba(0, 0, 0, 0.3);
+    --sidebar-bg: #1a1d20;
+    --sidebar-color: #adb5bd;
+}
+
+body {
+    background-color: var(--bs-body-bg);
+    color: var(--bs-body-color);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.card {
+    background-color: var(--card-bg);
+    box-shadow: 0 0.125rem 0.25rem var(--card-shadow);
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.table {
+    --bs-table-bg: var(--card-bg);
+    --bs-table-striped-bg: rgba(0, 0, 0, 0.02);
+    --bs-table-hover-bg: rgba(0, 0, 0, 0.05);
+}
+
+[data-bs-theme="dark"] .table {
+    --bs-table-striped-bg: rgba(255, 255, 255, 0.02);
+    --bs-table-hover-bg: rgba(255, 255, 255, 0.05);
+}
+
+.navbar {
+    transition: background-color 0.3s ease;
+}
+
+.sidebar {
+    background-color: var(--sidebar-bg);
+    color: var(--sidebar-color);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Animations */
+.fade-in {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Custom utilities */
+.min-h-100 {
+    min-height: 100px;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+/* Responsive tweaks */
+@media (max-width: 768px) {
+    .navbar-collapse {
+        padding-top: 1rem;
+    }
+}
+/* Dashboard spécifique */
+.dashboard-container {
+    padding: 1rem 0;
+}
+
+.empty-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    background-color: var(--bs-body-bg);
+    border-radius: 0.5rem;
+    border: 2px dashed var(--bs-border-color);
+}
+
+.empty-state-content {
+    max-width: 400px;
+}
+
+.card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-radius: 0.75rem;
+    overflow: hidden;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+.card-title {
+    font-size: 1.1rem;
+    color: var(--bs-heading-color);
+}
+
+.card-footer {
+    padding-top: 0;
+}
+
+/* Badges modernes */
+.badge {
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+}
+
+/* Modal amélioré */
+.modal-content {
+    border: none;
+    border-radius: 0.75rem;
+}
+
+.modal-header {
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+.modal-footer {
+    border-top: 1px solid var(--bs-border-color);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .empty-state {
+        min-height: 300px;
+    }
+    
+    .card {
+        margin-bottom: 1rem;
+    }
+}
+
