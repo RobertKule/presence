@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Tableau de bord{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Mes Cours</h1>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCourseModal">
+        <i class="bi bi-plus-lg"></i> Ajouter un cours
+    </button>
+</div>
+
+{% if courses %}
+<div class="row">
+    {% for course in courses %}
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">{{ course.name }}</h5>
+                <p class="card-text">
+                    <span class="badge bg-secondary">{{ course.students|length }} étudiants</span>
+                    <span class="badge bg-info ms-1">
+                        {% set session_count = course.attendances|map(attribute='date')|unique|list|length %}
+                        {{ session_count }} séances
+                    </span>
+                </p>
+                <p class="card-text text-muted small">
+                    Créé le {{ course.created_at.strftime('%d/%m/%Y') }}
+                </p>
+            </div>
+            <div class="card-footer bg-transparent">
+                <a href="{{ url_for('course', course_name=course.name) }}" class="btn btn-sm btn-outline-primary">
+                    Gérer le cours
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info">
+    Aucun cours n'a été créé pour le moment. Commencez par ajouter un cours.
+</div>
+{% endif %}
+
+<!-- Modal pour ajouter un cours -->
+<div class="modal fade" id="addCourseModal" tabindex="-1" aria-labelledby="addCourseModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('add_course') }}">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addCourseModalLabel">Ajouter un nouveau cours</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="courseName" class="form-label">Nom du cours</label>
+                        <input type="text" class="form-control" id="courseName" name="course_name" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Ajouter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
