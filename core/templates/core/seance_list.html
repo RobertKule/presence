@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Mes séances</title>
+</head>
+<body>
+    <h1>Mes séances</h1>
+    <p><a href="{% url 'dashboard' %}">Retour au dashboard</a> | <a href="{% url 'logout' %}">Déconnexion</a></p>
+
+    <a href="{% url 'seance_create' %}">➕ Ajouter une nouvelle séance</a>
+
+    <ul>
+        {% for s in seances %}
+            
+        <li>
+            {{ s.cours.nom }} ({{ s.date }} à {{ s.heure_debut }})
+            <a href="{% url 'appel_presence' s.pk %}">📋 Faire l’appel</a> |
+            <a href="{% url 'seance_update' s.pk %}">✏️ Modifier</a> |
+            <a href="{% url 'seance_delete' s.pk %}">🗑 Supprimer</a>
+        </li>
+
+        {% empty %}
+            <li>Aucune séance enregistrée</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Inscription</title>
+</head>
+<body>
+    <h2>Créer un compte enseignant</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">S'inscrire</button>
+    </form>
+    <p>Déjà inscrit ? <a href="{% url 'login' %}">Se connecter</a></p>
+</body>
+</html>

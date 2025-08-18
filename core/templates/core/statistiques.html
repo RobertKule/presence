@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Statistiques</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .details { display: none; margin-top: 10px; }
+        .btn { color: blue; cursor: pointer; text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <h1>📊 Statistiques des présences</h1>
+    <p><a href="{% url 'dashboard' %}">⬅ Retour au dashboard</a></p>
+
+    {% for block in stats %}
+        <h2>{{ block.cours }} (Classe : {{ block.classe }})</h2>
+        <p>Total de séances : {{ block.total_seances }}</p>
+
+        <!-- Stat global -->
+        <h3>Statistiques globales</h3>
+        <canvas id="global-chart-{{ forloop.counter }}" width="400" height="200"></canvas>
+
+        <!-- Tableau étudiants -->
+        <h3>Détails par étudiant</h3>
+        <table border="1" cellpadding="5">
+            <tr>
+                <th>Étudiant</th>
+                <th>Présent</th>
+                <th>Absent</th>
+                <th>Retard</th>
+                <th>Motif</th>
+                <th>Actions</th>
+            </tr>
+            {% for e in block.etudiants_stats %}
+            <tr>
+                <td>{{ e.etudiant }}</td>
+                <td>{{ e.present }}</td>
+                <td>{{ e.absent }}</td>
+                <td>{{ e.retard }}</td>
+                <td>{{ e.motif }}</td>
+                <td><span class="btn" onclick="toggleDetails('{{ forloop.parentloop.counter }}-{{ forloop.counter }}')">Voir détails</span></td>
+            </tr>
+            <tr id="details-{{ forloop.parentloop.counter }}-{{ forloop.counter }}" class="details">
+                <td colspan="6">
+                    <canvas id="chart-{{ forloop.parentloop.counter }}-{{ forloop.counter }}" width="300" height="150"></canvas>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+        <hr>
+    {% empty %}
+        <p>Aucun cours trouvé.</p>
+    {% endfor %}
+
+    <script>
+        const statsData = {{ stats_json|safe }};
+
+        // Fonction toggle affichage détails
+        function toggleDetails(id) {
+            const el = document.getElementById("details-" + id);
+            el.style.display = el.style.display === "none" || el.style.display === "" ? "table-row" : "none";
+        }
+
+        statsData.forEach((block, i) => {
+            // Graphe global
+            const gctx = document.getElementById("global-chart-" + (i + 1));
+            new Chart(gctx, {
+                type: "pie",
+                data: {
+                    labels: ["Présent", "Absent", "Retard", "Motif"],
+                    datasets: [{
+                        data: [block.global.present, block.global.absent, block.global.retard, block.global.motif],
+                        backgroundColor: ["green", "red", "orange", "blue"]
+                    }]
+                },
+                options: { responsive: true }
+            });
+
+            // Graphes individuels
+            block.etudiants_stats.forEach((etu, j) => {
+                const ctx = document.getElementById("chart-" + (i + 1) + "-" + (j + 1));
+                if (ctx) {
+                    new Chart(ctx, {
+                        type: "bar",
+                        data: {
+                            labels: ["Présent", "Absent", "Retard", "Motif"],
+                            datasets: [{
+                                label: etu.etudiant,
+                                data: [etu.present, etu.absent, etu.retard, etu.motif],
+                                backgroundColor: ["green", "red", "orange", "blue"]
+                            }]
+                        },
+                        options: { responsive: true, indexAxis: 'y' }
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

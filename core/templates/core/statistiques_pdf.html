@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Statistiques PDF</title>
+    <style>
+        body { font-family: sans-serif; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { border: 1px solid #000; padding: 5px; text-align: center; }
+        th { background-color: #f2f2f2; }
+        h1, h2 { text-align: center; }
+    </style>
+</head>
+<body>
+    <h1>Statistiques des présences</h1>
+    <h2>Cours : {{ stats.cours.nom }} (Classe : {{ stats.cours.classe.nom }})</h2>
+    <p>Total de séances : {{ stats.total_seances }}</p>
+
+    <h3>Statistiques globales</h3>
+    <table>
+        <tr>
+            <th>Présent</th>
+            <th>Absent</th>
+            <th>Retard</th>
+            <th>Motif</th>
+        </tr>
+        <tr>
+            <td>{{ stats.global.present }}</td>
+            <td>{{ stats.global.absent }}</td>
+            <td>{{ stats.global.retard }}</td>
+            <td>{{ stats.global.motif }}</td>
+        </tr>
+    </table>
+
+    <h3>Détails par étudiant</h3>
+    <table>
+        <tr>
+            <th>Étudiant</th>
+            <th>Présent</th>
+            <th>Absent</th>
+            <th>Retard</th>
+            <th>Motif</th>
+        </tr>
+        {% for e in stats.etudiants_stats %}
+        <tr>
+            <td>{{ e.etudiant }}</td>
+            <td>{{ e.present }}</td>
+            <td>{{ e.absent }}</td>
+            <td>{{ e.retard }}</td>
+            <td>{{ e.motif }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

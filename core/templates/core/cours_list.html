@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Mes cours</title>
+</head>
+<body>
+    <h1>Mes cours</h1>
+    <p><a href="{% url 'dashboard' %}">Retour au dashboard</a> | <a href="{% url 'logout' %}">Déconnexion</a></p>
+
+    <a href="{% url 'cours_create' %}">➕ Ajouter un nouveau cours</a>
+
+    <ul>
+        {% for c in cours %}
+            <li>
+                {{ c.nom }} ({{ c.classe.nom }})
+                <a href="{% url 'cours_update' c.pk %}">✏️ Modifier</a> |
+                <a href="{% url 'cours_delete' c.pk %}">🗑 Supprimer</a>
+            </li>
+        {% empty %}
+            <li>Aucun cours</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

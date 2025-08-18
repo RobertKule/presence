@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Supprimer Séance</title>
+</head>
+<body>
+    <h1>Supprimer la séance</h1>
+    <p>Êtes-vous sûr de vouloir supprimer la séance du cours <strong>{{ seance.cours.nom }}</strong> le <strong>{{ seance.date }}</strong> ?</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit">Oui, supprimer</button>
+        <a href="{% url 'seance_list' %}">Annuler</a>
+    </form>
+</body>
+</html>

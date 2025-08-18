@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Formulaire Cours</title>
+</head>
+<body>
+    <h1>{{ form.instance.pk|yesno:"Modifier un cours,Ajouter un cours" }}</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Enregistrer</button>
+    </form>
+    <p><a href="{% url 'cours_list' %}">Retour à la liste</a></p>
+</body>
+</html>

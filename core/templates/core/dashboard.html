@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+</head>
+<body>
+    <h1>Bienvenue {{ user.username }}</h1>
+    <p><a href="{% url 'logout' %}">Se déconnecter</a></p>
+
+    <h2>Vos cours</h2>
+    <p><a href="{% url 'cours_list' %}">📚 Gérer mes cours</a></p>
+    
+    <h2>Vos séances</h2>
+    <p><a href="{% url 'seance_list' %}">📅 Gérer mes séances</a></p>
+
+    <h2>📊 Statistiques</h2>
+    <p><a href="{% url 'statistiques' %}">Voir mes statistiques</a></p>
+
+     <h2>Vos cours</h2>
+    <ul>
+        {% for c in cours %}
+            <li>{{ c.nom }} - Classe : {{ c.classe.nom }}</li>
+        {% empty %}
+            <li>Aucun cours pour l’instant</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

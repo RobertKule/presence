@@ -1,0 +1,36 @@
+{% load extras %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Appel de présence</title>
+</head>
+<body>
+    <h1>Appel de présence - {{ seance.cours.nom }} ({{ seance.date }})</h1>
+    <form method="post">
+        {% csrf_token %}
+        <table border="1" cellpadding="5">
+            <tr>
+                <th>Étudiant</th>
+                <th>Statut</th>
+            </tr>
+            {% for etu in etudiants %}
+            <tr>
+                <td>{{ etu.nom }} {{ etu.prenom }}</td>
+                <td>
+                    <select name="statut_{{ etu.id }}">
+                        <option value="present" {% if presences|get_item:etu.id == "present" %}selected{% endif %}>Présent</option>
+                        <option value="retard" {% if presences|get_item:etu.id == "retard" %}selected{% endif %}>En retard</option>
+                        <option value="absent" {% if presences|get_item:etu.id == "absent" %}selected{% endif %}>Absent</option>
+                        <option value="motif" {% if presences|get_item:etu.id == "motif" %}selected{% endif %}>Absent avec motif</option>
+                    </select>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+        <br>
+        <button type="submit">✅ Enregistrer l’appel</button>
+    </form>
+    <p><a href="{% url 'seance_list' %}">⬅ Retour aux séances</a></p>
+</body>
+</html>
