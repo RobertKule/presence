@@ -1,29 +1,305 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-theme="light">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de Bord | EduConnect</title>
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --secondary-color: #10b981;
+            --text-color: #1f2937;
+            --bg-color: #f9fafb;
+            --card-bg: #ffffff;
+            --border-color: #e5e7eb;
+            --transition: all 0.3s ease;
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #6366f1;
+            --primary-hover: #818cf8;
+            --secondary-color: #6ee7b7;
+            --text-color: #f3f4f6;
+            --bg-color: #111827;
+            --card-bg: #1f2937;
+            --border-color: #374151;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: var(--transition);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .user-info h1 {
+            color: var(--primary-color);
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .logout-btn {
+            background-color: transparent;
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .logout-btn:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h2 {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card p {
+            margin-bottom: 20px;
+            color: var(--text-color);
+            opacity: 0.8;
+        }
+
+        .card-link {
+            display: inline-block;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            padding: 8px 0;
+        }
+
+        .card-link:hover {
+            text-decoration: underline;
+        }
+
+        .card-link::after {
+            content: '→';
+            margin-left: 5px;
+        }
+
+        .cours-list {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+        }
+
+        .cours-list h2 {
+            font-size: 22px;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+        }
+
+        .cours-list ul {
+            list-style: none;
+        }
+
+        .cours-list li {
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .cours-list li:last-child {
+            border-bottom: none;
+        }
+
+        .cours-list .empty {
+            color: var(--text-color);
+            opacity: 0.7;
+            font-style: italic;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        .theme-toggle i {
+            font-size: 20px;
+            color: var(--text-color);
+        }
+
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <h1>Bienvenue {{ user.username }}</h1>
-    <p><a href="{% url 'logout' %}">Se déconnecter</a></p>
+    <!-- Theme toggle button -->
+    <div class="theme-toggle" id="themeToggle">
+        <i class="fas fa-moon"></i>
+    </div>
 
-    <h2>Vos cours</h2>
-    <p><a href="{% url 'cours_list' %}">📚 Gérer mes cours</a></p>
-    
-    <h2>Vos séances</h2>
-    <p><a href="{% url 'seance_list' %}">📅 Gérer mes séances</a></p>
+    <div class="container">
+        <header>
+            <div class="user-info">
+                <h1>Bienvenue, {{ user.username }}</h1>
+                <p>Votre tableau de bord enseignant</p>
+            </div>
+            <a href="{% url 'logout' %}" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i> Se déconnecter
+            </a>
+        </header>
 
-    <h2>📊 Statistiques</h2>
-    <p><a href="{% url 'statistiques' %}">Voir mes statistiques</a></p>
+        <div class="dashboard-grid">
+            <div class="card" onclick="window.location='{% url 'cours_list' %}'">
+                <h2><i class="fas fa-book"></i> Vos cours</h2>
+                <p>Gérez l'ensemble de vos cours et supports pédagogiques</p>
+                <a href="{% url 'cours_list' %}" class="card-link">Accéder aux cours</a>
+            </div>
 
-     <h2>Vos cours</h2>
-    <ul>
-        {% for c in cours %}
-            <li>{{ c.nom }} - Classe : {{ c.classe.nom }}</li>
-        {% empty %}
-            <li>Aucun cours pour l’instant</li>
-        {% endfor %}
-    </ul>
+            <div class="card" onclick="window.location='{% url 'seance_list' %}'">
+                <h2><i class="fas fa-calendar-alt"></i> Vos séances</h2>
+                <p>Planifiez et consultez vos séances de cours à venir</p>
+                <a href="{% url 'seance_list' %}" class="card-link">Voir le calendrier</a>
+            </div>
+
+            <div class="card" onclick="window.location='{% url 'statistiques' %}'">
+                <h2><i class="fas fa-chart-bar"></i> Statistiques</h2>
+                <p>Consultez vos indicateurs et suivis pédagogiques</p>
+                <a href="{% url 'statistiques' %}" class="card-link">Voir les stats</a>
+            </div>
+        </div>
+
+        <div class="cours-list">
+            <h2><i class="fas fa-list-ul"></i> Vos cours actuels</h2>
+            <ul>
+                {% for c in cours %}
+                    <li>
+                        <span>{{ c.nom }}</span>
+                        <span class="classe-badge">{{ c.classe.nom }}</span>
+                    </li>
+                {% empty %}
+                    <li class="empty">Aucun cours pour l'instant</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('themeToggle');
+        const htmlElement = document.documentElement;
+        
+        // Check for saved theme preference or use preferred color scheme
+        const savedTheme = localStorage.getItem('theme') || 
+                           (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        
+        // Apply the saved theme
+        htmlElement.setAttribute('data-theme', savedTheme);
+        
+        // Update icon based on theme
+        updateThemeIcon(savedTheme);
+        
+        // Toggle theme on button click
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = htmlElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            
+            htmlElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            
+            updateThemeIcon(newTheme);
+        });
+        
+        function updateThemeIcon(theme) {
+            const icon = themeToggle.querySelector('i');
+            if (theme === 'dark') {
+                icon.classList.replace('fa-moon', 'fa-sun');
+            } else {
+                icon.classList.replace('fa-sun', 'fa-moon');
+            }
+        }
+
+        // Make entire cards clickable
+        document.querySelectorAll('.card').forEach(card => {
+            card.addEventListener('click', function(e) {
+                // Don't redirect if clicking on a link inside the card
+                if (e.target.tagName !== 'A' && !e.target.closest('a')) {
+                    const link = this.querySelector('a');
+                    if (link) window.location = link.href;
+                }
+            });
+        });
+    </script>
 </body>
 </html>

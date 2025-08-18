@@ -1,36 +1,392 @@
 {% load extras %}
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-theme="light">
 <head>
     <meta charset="UTF-8">
-    <title>Appel de présence</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appel de présence - {{ seance.cours.nom }} | EduConnect</title>
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --secondary-color: #6b7280;
+            --text-color: #1f2937;
+            --bg-color: #f9fafb;
+            --card-bg: #ffffff;
+            --border-color: #e5e7eb;
+            --error-color: #ef4444;
+            --success-color: #10b981;
+            --present-color: #10b981;
+            --late-color: #f59e0b;
+            --absent-color: #ef4444;
+            --excused-color: #8b5cf6;
+            --transition: all 0.3s ease;
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #6366f1;
+            --primary-hover: #818cf8;
+            --secondary-color: #9ca3af;
+            --text-color: #f3f4f6;
+            --bg-color: #111827;
+            --card-bg: #1f2937;
+            --border-color: #374151;
+            --error-color: #f87171;
+            --success-color: #6ee7b7;
+            --present-color: #6ee7b7;
+            --late-color: #fbbf24;
+            --absent-color: #f87171;
+            --excused-color: #a78bfa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: var(--transition);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            width: 100px;
+            margin-bottom: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .seance-info {
+            color: var(--secondary-color);
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+
+        .attendance-container {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            border: 1px solid var(--border-color);
+            animation: fadeInUp 0.5s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .attendance-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-bottom: 30px;
+        }
+
+        .attendance-table th {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .attendance-table th:first-child {
+            border-top-left-radius: 8px;
+        }
+
+        .attendance-table th:last-child {
+            border-top-right-radius: 8px;
+        }
+
+        .attendance-table tr:nth-child(even) {
+            background-color: rgba(79, 70, 229, 0.05);
+        }
+
+        [data-theme="dark"] .attendance-table tr:nth-child(even) {
+            background-color: rgba(99, 102, 241, 0.1);
+        }
+
+        .attendance-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .student-name {
+            font-weight: 500;
+        }
+
+        .status-select {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            cursor: pointer;
+            width: 100%;
+            max-width: 200px;
+        }
+
+        .status-select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+        }
+
+        .status-present {
+            background-color: rgba(16, 185, 129, 0.1);
+            border-left: 4px solid var(--present-color);
+        }
+
+        .status-late {
+            background-color: rgba(245, 158, 11, 0.1);
+            border-left: 4px solid var(--late-color);
+        }
+
+        .status-absent {
+            background-color: rgba(239, 68, 68, 0.1);
+            border-left: 4px solid var(--absent-color);
+        }
+
+        .status-excused {
+            background-color: rgba(139, 92, 246, 0.1);
+            border-left: 4px solid var(--excused-color);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--secondary-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--border-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        .theme-toggle i {
+            font-size: 20px;
+            color: var(--text-color);
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .attendance-container {
+                padding: 20px 15px;
+            }
+            
+            .attendance-table {
+                display: block;
+                overflow-x: auto;
+            }
+            
+            .form-actions {
+                flex-direction: column-reverse;
+                gap: 15px;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <h1>Appel de présence - {{ seance.cours.nom }} ({{ seance.date }})</h1>
-    <form method="post">
-        {% csrf_token %}
-        <table border="1" cellpadding="5">
-            <tr>
-                <th>Étudiant</th>
-                <th>Statut</th>
-            </tr>
-            {% for etu in etudiants %}
-            <tr>
-                <td>{{ etu.nom }} {{ etu.prenom }}</td>
-                <td>
-                    <select name="statut_{{ etu.id }}">
-                        <option value="present" {% if presences|get_item:etu.id == "present" %}selected{% endif %}>Présent</option>
-                        <option value="retard" {% if presences|get_item:etu.id == "retard" %}selected{% endif %}>En retard</option>
-                        <option value="absent" {% if presences|get_item:etu.id == "absent" %}selected{% endif %}>Absent</option>
-                        <option value="motif" {% if presences|get_item:etu.id == "motif" %}selected{% endif %}>Absent avec motif</option>
-                    </select>
-                </td>
-            </tr>
-            {% endfor %}
-        </table>
-        <br>
-        <button type="submit">✅ Enregistrer l’appel</button>
-    </form>
-    <p><a href="{% url 'seance_list' %}">⬅ Retour aux séances</a></p>
+    <!-- Theme toggle button -->
+    <div class="theme-toggle" id="themeToggle">
+        <i class="fas fa-moon"></i>
+    </div>
+
+    <div class="container">
+        <!-- Logo - Replace with your actual logo -->
+        <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='40' fill='%234f46e5'/><path d='M30,30 L70,70 M70,30 L30,70' stroke='white' stroke-width='8' stroke-linecap='round'/></svg>" alt="EduConnect Logo" class="logo">
+
+        <div class="header">
+            <div>
+                <h1>Appel de présence</h1>
+                <div class="seance-info">
+                    {{ seance.cours.nom }} - {{ seance.date|date:"l d F Y" }} 
+                    <span style="color: var(--primary-color); font-weight: 500;">{{ seance.heure_debut }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="attendance-container">
+            <form method="post">
+                {% csrf_token %}
+                <table class="attendance-table">
+                    <thead>
+                        <tr>
+                            <th>Étudiant</th>
+                            <th>Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for etu in etudiants %}
+                        {% with status=presences|get_item:etu.id %}
+                        <tr class="status-{{ status|default:'absent' }}">
+                            <td class="student-name">
+                                {{ etu.nom }} {{ etu.prenom }}
+                            </td>
+                            <td>
+                                <select name="statut_{{ etu.id }}" class="status-select">
+                                    <option value="present" {% if status == "present" %}selected{% endif %}>
+                                        <i class="fas fa-check"></i> Présent
+                                    </option>
+                                    <option value="retard" {% if status == "retard" %}selected{% endif %}>
+                                        <i class="fas fa-clock"></i> En retard
+                                    </option>
+                                    <option value="absent" {% if status == "absent" or not status %}selected{% endif %}>
+                                        <i class="fas fa-times"></i> Absent
+                                    </option>
+                                    <option value="motif" {% if status == "motif" %}selected{% endif %}>
+                                        <i class="fas fa-envelope"></i> Absent avec motif
+                                    </option>
+                                </select>
+                            </td>
+                        </tr>
+                        {% endwith %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <div class="form-actions">
+                    <a href="{% url 'seance_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Retour aux séances
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Enregistrer l'appel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('themeToggle');
+        const htmlElement = document.documentElement;
+        
+        // Check for saved theme preference or use preferred color scheme
+        const savedTheme = localStorage.getItem('theme') || 
+                           (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        
+        // Apply the saved theme
+        htmlElement.setAttribute('data-theme', savedTheme);
+        
+        // Update icon based on theme
+        updateThemeIcon(savedTheme);
+        
+        // Toggle theme on button click
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = htmlElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            
+            htmlElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            
+            updateThemeIcon(newTheme);
+        });
+        
+        function updateThemeIcon(theme) {
+            const icon = themeToggle.querySelector('i');
+            if (theme === 'dark') {
+                icon.classList.replace('fa-moon', 'fa-sun');
+            } else {
+                icon.classList.replace('fa-sun', 'fa-moon');
+            }
+        }
+        
+        // Update row style when status changes
+        document.querySelectorAll('.status-select').forEach(select => {
+            select.addEventListener('change', function() {
+                const row = this.closest('tr');
+                // Remove all status classes
+                row.classList.remove('status-present', 'status-late', 'status-absent', 'status-excused');
+                // Add the appropriate class
+                row.classList.add(`status-${this.value}`);
+            });
+        });
+    </script>
 </body>
 </html>

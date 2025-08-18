@@ -1,6 +1,30 @@
-from django.db import models
-from django.contrib.auth.models import User
+# core/models.py
 
+from django.db import models
+from django.contrib.auth.models import AbstractUser
+
+
+# -------------------
+# UTILISATEUR
+# -------------------
+class User(AbstractUser):
+    ROLE_CHOICES = [
+        ('admin', 'Administrateur'),
+        ('enseignant', 'Enseignant'),
+    ]
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='enseignant')
+
+    def is_admin(self):
+        """Vérifie si l’utilisateur est un administrateur."""
+        return self.role == 'admin'
+
+    def __str__(self):
+        return f"{self.username} ({self.get_role_display()})"
+
+
+# -------------------
+# CLASSE
+# -------------------
 class Classe(models.Model):
     nom = models.CharField(max_length=100, unique=True)
 
@@ -8,6 +32,9 @@ class Classe(models.Model):
         return self.nom
 
 
+# -------------------
+# ETUDIANT
+# -------------------
 class Etudiant(models.Model):
     matricule = models.CharField(max_length=20, unique=True)
     nom = models.CharField(max_length=100)
@@ -18,6 +45,9 @@ class Etudiant(models.Model):
         return f"{self.nom} {self.prenom or ''} ({self.matricule})"
 
 
+# -------------------
+# COURS
+# -------------------
 class Cours(models.Model):
     nom = models.CharField(max_length=100)
     enseignant = models.ForeignKey(User, on_delete=models.CASCADE, related_name="cours")
@@ -27,17 +57,23 @@ class Cours(models.Model):
         return f"{self.nom} - {self.classe}"
 
 
+# -------------------
+# SEANCE
+# -------------------
 class Seance(models.Model):
     cours = models.ForeignKey(Cours, on_delete=models.CASCADE, related_name="seances")
     date = models.DateField()
     heure_debut = models.TimeField()
     heure_fin = models.TimeField(blank=True, null=True)
-    description=models.CharField(max_length=250,null=True,blank=True)
+    description = models.CharField(max_length=250, null=True, blank=True)
 
     def __str__(self):
         return f"{self.cours.nom} ({self.date} - {self.heure_debut})"
 
 
+# -------------------
+# PRESENCE
+# -------------------
 class Presence(models.Model):
     STATUS_CHOICES = [
         ("present", "Présent"),
@@ -50,7 +86,9 @@ class Presence(models.Model):
     statut = models.CharField(max_length=10, choices=STATUS_CHOICES, default="absent")
 
     class Meta:
-        unique_together = ("etudiant", "seance")
+        constraints = [
+            models.UniqueConstraint(fields=["etudiant", "seance"], name="unique_presence")
+        ]
 
     def __str__(self):
-        return f"{self.etudiant} - {self.seance} : {self.statut}"
+        return f"{self.etudiant} - {self.seance} : {self.get_statut_display()}"

@@ -1,31 +1,157 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-theme="light">
 <head>
     <meta charset="UTF-8">
-    <title>Mes cours</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mes Cours | EduConnect</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --text-color: #1f2937;
+            --bg-color: #f9fafb;
+            --card-bg: #ffffff;
+            --border-color: #e5e7eb;
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #6366f1;
+            --primary-hover: #818cf8;
+            --text-color: #f3f4f6;
+            --bg-color: #111827;
+            --card-bg: #1f2937;
+            --border-color: #374151;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+    </style>
 </head>
-<body>
-    <h1>Mes cours</h1>
-    <p><a href="{% url 'dashboard' %}">Retour au dashboard</a> | <a href="{% url 'logout' %}">Déconnexion</a></p>
+<body class="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <!-- Theme toggle button -->
+    <div class="theme-toggle" id="themeToggle">
+        <i class="fas fa-moon text-gray-800 dark:text-gray-200"></i>
+    </div>
 
-    <a href="{% url 'cours_create' %}">➕ Ajouter un nouveau cours</a>
-
-    <ul>
-        {% for c in cours %}
-            <li>
-                {{ c.nom }} ({{ c.classe.nom }})
-                <a href="{% url 'cours_update' c.pk %}">✏️ Modifier</a> |
-                <a href="{% url 'cours_delete' c.pk %}">🗑 Supprimer</a> |
-                <a href="{% url 'export_pdf_statistiques' c.id %}" 
-                    class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                    target="_blank">
-                    Exporter PDF
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800 dark:text-white">Mes Cours</h1>
+                <p class="text-gray-600 dark:text-gray-300">Gérez l'ensemble de vos cours</p>
+            </div>
+            <div class="mt-4 md:mt-0 space-x-4">
+                <a href="{% url 'dashboard' %}" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
+                    <i class="fas fa-arrow-left mr-1"></i> Retour au dashboard
                 </a>
+                <a href="{% url 'logout' %}" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
+                    <i class="fas fa-sign-out-alt mr-1"></i> Déconnexion
+                </a>
+            </div>
+        </div>
 
-            </li>
-        {% empty %}
-            <li>Aucun cours</li>
-        {% endfor %}
-    </ul>
+        <!-- Add course button -->
+        <div class="mb-8">
+            <a href="{% url 'cours_create' %}" class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                <i class="fas fa-plus mr-2"></i> Ajouter un nouveau cours
+            </a>
+        </div>
+
+        <!-- Courses list -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+            {% if cours %}
+                <ul class="divide-y divide-gray-200 dark:divide-gray-700">
+                    {% for c in cours %}
+                        <li class="p-6 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                            <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                                <div class="mb-4 md:mb-0">
+                                    <h3 class="text-lg font-semibold text-gray-800 dark:text-white">{{ c.nom }}</h3>
+                                    <p class="text-gray-600 dark:text-gray-300">Classe : {{ c.classe.nom }}</p>
+                                </div>
+                                <div class="flex flex-wrap gap-2">
+                                    <a href="{% url 'cours_update' c.pk %}" class="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition-colors text-sm">
+                                        <i class="fas fa-edit mr-1"></i> Modifier
+                                    </a>
+                                    <a href="{% url 'cours_delete' c.pk %}" class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors text-sm">
+                                        <i class="fas fa-trash mr-1"></i> Supprimer
+                                    </a>
+                                    <a href="{% url 'export_pdf_statistiques' c.id %}" 
+                                       class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors text-sm"
+                                       target="_blank">
+                                        <i class="fas fa-file-pdf mr-1"></i> Exporter PDF
+                                    </a>
+                                </div>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div class="p-6 text-center text-gray-600 dark:text-gray-300">
+                    <i class="fas fa-book-open text-4xl mb-4 text-gray-400"></i>
+                    <p class="text-lg">Aucun cours disponible</p>
+                    <p class="mt-2">Commencez par ajouter un nouveau cours</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('themeToggle');
+        const htmlElement = document.documentElement;
+        
+        // Check for saved theme preference or use preferred color scheme
+        const savedTheme = localStorage.getItem('theme') || 
+                           (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        
+        // Apply the saved theme
+        htmlElement.setAttribute('data-theme', savedTheme);
+        
+        // Update icon based on theme
+        updateThemeIcon(savedTheme);
+        
+        // Toggle theme on button click
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = htmlElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            
+            htmlElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            
+            updateThemeIcon(newTheme);
+        });
+        
+        function updateThemeIcon(theme) {
+            const icon = themeToggle.querySelector('i');
+            if (theme === 'dark') {
+                icon.classList.replace('fa-moon', 'fa-sun');
+            } else {
+                icon.classList.replace('fa-sun', 'fa-moon');
+            }
+        }
+    </script>
 </body>
 </html>
