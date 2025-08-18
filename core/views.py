@@ -250,8 +250,9 @@ def export_excel(request, cours_id):
 
 from django.template.loader import render_to_string
 from django.http import HttpResponse
-import tempfile
-from weasyprint import HTML
+from xhtml2pdf import pisa
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.decorators import login_required
 
 @login_required
 def export_pdf_statistiques(request, cours_id):
@@ -297,14 +298,15 @@ def export_pdf_statistiques(request, cours_id):
     # Render HTML
     html_string = render_to_string("core/statistiques_pdf.html", {"stats": stats})
 
-    # Création PDF
-    with tempfile.NamedTemporaryFile(delete=True) as output:
-        HTML(string=html_string).write_pdf(target=output.name)
-        output.seek(0)
-        pdf = output.read()
-
-    response = HttpResponse(pdf, content_type="application/pdf")
+    # Création PDF avec xhtml2pdf
+    response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="statistiques_{cours.nom}.pdf"'
+    
+    # Convert HTML to PDF
+    pisa_status = pisa.CreatePDF(src=html_string, dest=response)
+    if pisa_status.err:
+        return HttpResponse("Erreur lors de la génération du PDF")
+
     return response
 
 
