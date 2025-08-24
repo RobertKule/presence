@@ -1,0 +1,167 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Mes Cours | EduConnect{% endblock %}
+
+{% block header %}
+    <i class="fas fa-book me-2"></i> Mes Cours
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <!-- Actions Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <h3 class="mb-0 text-primary">
+            <i class="fas fa-book-open me-2"></i>
+            Gérer mes cours
+        </h3>
+        <a href="{% url 'core:cours_create' %}" class="btn btn-primary px-4 d-flex align-items-center gap-2">
+            <i class="fas fa-plus-circle"></i> <span>Nouveau Cours</span>
+        </a>
+    </div>
+
+    <!-- Empty State or Grid -->
+    {% if cours %}
+        <div class="row g-4">
+            {% for cours in cours %}
+                <div class="col-lg-4 col-md-6 col-sm-12">
+                    <div class="card h-100 shadow-sm border-0 hover-lift transition-transform">
+                        <div class="position-relative">
+                            <!-- <img src="{% static 'img/course-placeholder.jpg' %}" alt="Cours" class="card-img-top" style="height: 150px; object-fit: cover;"> -->
+                            <img src="https://via.placeholder.com/300x150/4f46e5/FFFFFF?text={{ cours.type_cours|upper }}" alt="Cours" class="card-img-top" style="height: 150px; object-fit: cover;">
+                            <div class="position-absolute top-0 end-0 m-2">
+                                <span class="badge bg-secondary rounded-pill px-3 py-2">
+                                    {{ cours.get_type_cours_display }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title text-dark fw-bold">{{ cours.nom }}</h5>
+                            <p class="text-muted mb-2">
+                                <i class="fas fa-building me-1"></i> {{ cours.classe }}
+                            </p>
+                            {% if cours.description %}
+                                <p class="card-text text-muted small mb-3">
+                                    {{ cours.description|truncatewords:20 }}
+                                </p>
+                            {% else %}
+                                <p class="card-text text-muted fst-italic small mb-3">Aucune description</p>
+                            {% endif %}
+
+                            <div class="d-flex justify-content-between align-items-center mt-auto">
+                                <small class="text-muted">
+                                    <i class="fas fa-id-badge me-1"></i> {{ cours.code }}
+                                </small>
+                                <span class="badge bg-primary bg-opacity-10 text-primary px-2 py-1">
+                                    {{ cours.seances_count }} séance{{ cours.seances_count|pluralize }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent border-0 pt-0">
+                            <div class="d-flex gap-2">
+                                <a href="{% url 'core:cours_detail' cours.pk %}" class="btn btn-sm btn-outline-primary flex-fill">
+                                    <i class="fas fa-eye me-1"></i> Détails
+                                </a>
+                                <a href="{% url 'core:cours_update' cours.pk %}" class="btn btn-sm btn-outline-warning flex-fill">
+                                    <i class="fas fa-edit me-1"></i> Modifier
+                                </a>
+                                <a href="{% url 'core:seance_create' %}?cours={{ cours.pk }}" class="btn btn-sm btn-outline-success flex-fill">
+                                    <i class="fas fa-calendar-plus me-1"></i> Séance
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if cours.has_other_pages %}
+            <nav aria-label="Pagination" class="mt-5">
+                <ul class="pagination justify-content-center">
+                    {% if cours.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ cours.previous_page_number }}">← Précédent</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">← Précédent</span>
+                        </li>
+                    {% endif %}
+
+                    {% for num in cours.paginator.page_range %}
+                        {% if cours.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                        {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if cours.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ cours.next_page_number }}">Suivant →</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">Suivant →</span>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+
+    {% else %}
+        <!-- Empty State -->
+        <div class="text-center py-5">
+            <i class="fas fa-book-open text-muted" style="font-size: 5rem; opacity: 0.3;"></i>
+            <h4 class="text-muted mt-3">Aucun cours pour l'instant</h4>
+            <p class="text-muted mb-4">Commencez par créer votre premier cours pour organiser vos séances.</p>
+            <a href="{% url 'core:cours_create' %}" class="btn btn-lg btn-primary px-5">
+                <i class="fas fa-plus-circle me-2"></i> Créer un cours
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Animation douce au survol des cartes
+    document.querySelectorAll('.card').forEach(card => {
+        card.addEventListener('mouseenter', () => {
+            card.style.transform = 'translateY(-5px)';
+        });
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = 'translateY(0)';
+        });
+    });
+
+    // Pré-remplir le cours dans la création de séance
+    const urlParams = new URLSearchParams(window.location.search);
+    const coursId = urlParams.get('cours');
+    if (coursId) {
+        const seanceLinks = document.querySelectorAll('a[href*="seance_create"]');
+        seanceLinks.forEach(link => {
+            const url = new URL(link.href, window.location.origin);
+            url.searchParams.set('cours', coursId);
+            link.href = url;
+        });
+    }
+</script>
+<style>
+    .hover-lift {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .hover-lift:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+    }
+    .transition-transform {
+        transition: transform 0.3s ease;
+    }
+</style>
+{% endblock %}

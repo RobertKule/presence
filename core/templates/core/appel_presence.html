@@ -1,392 +1,373 @@
-{% load extras %}
-<!DOCTYPE html>
-<html lang="fr" data-theme="light">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Appel de présence - {{ seance.cours.nom }} | EduConnect</title>
-    <style>
-        :root {
-            --primary-color: #4f46e5;
-            --primary-hover: #4338ca;
-            --secondary-color: #6b7280;
-            --text-color: #1f2937;
-            --bg-color: #f9fafb;
-            --card-bg: #ffffff;
-            --border-color: #e5e7eb;
-            --error-color: #ef4444;
-            --success-color: #10b981;
-            --present-color: #10b981;
-            --late-color: #f59e0b;
-            --absent-color: #ef4444;
-            --excused-color: #8b5cf6;
-            --transition: all 0.3s ease;
-        }
+{% extends "core/base.html" %}
+{% load static %}
 
-        [data-theme="dark"] {
-            --primary-color: #6366f1;
-            --primary-hover: #818cf8;
-            --secondary-color: #9ca3af;
-            --text-color: #f3f4f6;
-            --bg-color: #111827;
-            --card-bg: #1f2937;
-            --border-color: #374151;
-            --error-color: #f87171;
-            --success-color: #6ee7b7;
-            --present-color: #6ee7b7;
-            --late-color: #fbbf24;
-            --absent-color: #f87171;
-            --excused-color: #a78bfa;
-        }
+{% block title %}Appel de Présence | {{ seance.cours.nom }}{% endblock %}
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            transition: var(--transition);
-        }
+{% block header %}
+    <i class="fas fa-user-check me-2"></i> Appel de Présence
+    <span class="badge bg-primary ms-2">{{ seance.cours.get_type_cours_display }}</span>
+{% endblock %}
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-
-        .logo {
-            width: 100px;
-            margin-bottom: 20px;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
-
-        h1 {
-            color: var(--primary-color);
-            font-size: 24px;
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-
-        .seance-info {
-            color: var(--secondary-color);
-            margin-bottom: 30px;
-            font-size: 16px;
-        }
-
-        .attendance-container {
-            background-color: var(--card-bg);
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            padding: 30px;
-            border: 1px solid var(--border-color);
-            animation: fadeInUp 0.5s ease;
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .attendance-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            margin-bottom: 30px;
-        }
-
-        .attendance-table th {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 12px 15px;
-            text-align: left;
-            font-weight: 600;
-        }
-
-        .attendance-table th:first-child {
-            border-top-left-radius: 8px;
-        }
-
-        .attendance-table th:last-child {
-            border-top-right-radius: 8px;
-        }
-
-        .attendance-table tr:nth-child(even) {
-            background-color: rgba(79, 70, 229, 0.05);
-        }
-
-        [data-theme="dark"] .attendance-table tr:nth-child(even) {
-            background-color: rgba(99, 102, 241, 0.1);
-        }
-
-        .attendance-table td {
-            padding: 12px 15px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .student-name {
-            font-weight: 500;
-        }
-
-        .status-select {
-            padding: 8px 12px;
-            border-radius: 6px;
-            border: 1px solid var(--border-color);
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            cursor: pointer;
-            width: 100%;
-            max-width: 200px;
-        }
-
-        .status-select:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
-        }
-
-        .status-present {
-            background-color: rgba(16, 185, 129, 0.1);
-            border-left: 4px solid var(--present-color);
-        }
-
-        .status-late {
-            background-color: rgba(245, 158, 11, 0.1);
-            border-left: 4px solid var(--late-color);
-        }
-
-        .status-absent {
-            background-color: rgba(239, 68, 68, 0.1);
-            border-left: 4px solid var(--absent-color);
-        }
-
-        .status-excused {
-            background-color: rgba(139, 92, 246, 0.1);
-            border-left: 4px solid var(--excused-color);
-        }
-
-        .form-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .btn {
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: var(--transition);
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-primary {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-        }
-
-        .btn-primary:hover {
-            background-color: var(--primary-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .btn-secondary {
-            background-color: transparent;
-            color: var(--secondary-color);
-            border: 1px solid var(--border-color);
-        }
-
-        .btn-secondary:hover {
-            background-color: var(--border-color);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .theme-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            z-index: 100;
-        }
-
-        .theme-toggle i {
-            font-size: 20px;
-            color: var(--text-color);
-        }
-
-        /* Responsive design */
-        @media (max-width: 768px) {
-            .attendance-container {
-                padding: 20px 15px;
-            }
-            
-            .attendance-table {
-                display: block;
-                overflow-x: auto;
-            }
-            
-            .form-actions {
-                flex-direction: column-reverse;
-                gap: 15px;
-            }
-            
-            .btn {
-                width: 100%;
-                justify-content: center;
-            }
-        }
-    </style>
-    <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-</head>
-<body>
-    <!-- Theme toggle button -->
-    <div class="theme-toggle" id="themeToggle">
-        <i class="fas fa-moon"></i>
-    </div>
-
-    <div class="container">
-        <!-- Logo - Replace with your actual logo -->
-        <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='40' fill='%234f46e5'/><path d='M30,30 L70,70 M70,30 L30,70' stroke='white' stroke-width='8' stroke-linecap='round'/></svg>" alt="EduConnect Logo" class="logo">
-
-        <div class="header">
-            <div>
-                <h1>Appel de présence</h1>
-                <div class="seance-info">
-                    {{ seance.cours.nom }} - {{ seance.date|date:"l d F Y" }} 
-                    <span style="color: var(--primary-color); font-weight: 500;">{{ seance.heure_debut }}</span>
+{% block content %}
+<div class="container-fluid px-4">
+    <!-- Séance Info -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h4 class="mb-1 text-dark">{{ seance.cours.nom }}</h4>
+                    <p class="text-muted mb-1">
+                        <i class="fas fa-building me-1"></i> {{ seance.cours.classe }}
+                    </p>
+                    <p class="text-muted mb-0">
+                        <i class="fas fa-calendar-alt me-1"></i> 
+                        {{ seance.date|date:"l d F Y"|title }}
+                        &nbsp;•&nbsp;
+                        <i class="fas fa-clock me-1"></i> 
+                        {{ seance.heure_debut|time:"H:i" }} → {{ seance.heure_fin|time:"H:i" }}
+                        &nbsp;•&nbsp;
+                        <i class="fas fa-door-open me-1"></i> {{ seance.salle|default:"Non spécifiée" }}
+                    </p>
+                </div>
+                <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                    <div class="d-flex justify-content-md-end align-items-center gap-3">
+                        <span class="text-muted small">Taux de présence :</span>
+                        <span id="tauxPresence"
+                              class="badge bg-{% if taux_presence >= 75 %}success{% else %}danger{% endif %} fw-bold">
+                            {{ taux_presence|floatformat:0 }}%
+                        </span>
+                        <a href="{% url 'core:seance_update' seance.pk %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-edit me-1"></i> Modifier
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
-
-        <div class="attendance-container">
-            <form method="post">
-                {% csrf_token %}
-                <table class="attendance-table">
-                    <thead>
-                        <tr>
-                            <th>Étudiant</th>
-                            <th>Statut</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for etu in etudiants %}
-                        {% with status=presences|get_item:etu.id %}
-                        <tr class="status-{{ status|default:'absent' }}">
-                            <td class="student-name">
-                                {{ etu.nom }} {{ etu.prenom }}
-                            </td>
-                            <td>
-                                <select name="statut_{{ etu.id }}" class="status-select">
-                                    <option value="present" {% if status == "present" %}selected{% endif %}>
-                                        <i class="fas fa-check"></i> Présent
-                                    </option>
-                                    <option value="retard" {% if status == "retard" %}selected{% endif %}>
-                                        <i class="fas fa-clock"></i> En retard
-                                    </option>
-                                    <option value="absent" {% if status == "absent" or not status %}selected{% endif %}>
-                                        <i class="fas fa-times"></i> Absent
-                                    </option>
-                                    <option value="motif" {% if status == "motif" %}selected{% endif %}>
-                                        <i class="fas fa-envelope"></i> Absent avec motif
-                                    </option>
-                                </select>
-                            </td>
-                        </tr>
-                        {% endwith %}
-                        {% endfor %}
-                    </tbody>
-                </table>
-
-                <div class="form-actions">
-                    <a href="{% url 'seance_list' %}" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left"></i> Retour aux séances
-                    </a>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Enregistrer l'appel
-                    </button>
-                </div>
-            </form>
-        </div>
     </div>
 
-    <script>
-        // Theme toggle functionality
-        const themeToggle = document.getElementById('themeToggle');
-        const htmlElement = document.documentElement;
+    <!-- Quick Actions -->
+    <div class="d-flex flex-wrap gap-2 mb-4">
+        <button type="button" class="btn btn-sm btn-outline-success" onclick="markAll('present')">
+            <i class="fas fa-check me-1"></i> Tous présents
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-warning" onclick="markAll('retard')">
+            <i class="fas fa-clock me-1"></i> Tous en retard
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-danger" onclick="markAll('absent')">
+            <i class="fas fa-times me-1"></i> Tous absents
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="resetAll()">
+            <i class="fas fa-undo me-1"></i> Réinitialiser
+        </button>
         
-        // Check for saved theme preference or use preferred color scheme
-        const savedTheme = localStorage.getItem('theme') || 
-                           (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        <!-- Bouton pour ajouter un étudiant -->
+        <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#addStudentModal">
+            <i class="fas fa-plus me-1"></i> Ajouter étudiant
+        </button>
         
-        // Apply the saved theme
-        htmlElement.setAttribute('data-theme', savedTheme);
-        
-        // Update icon based on theme
-        updateThemeIcon(savedTheme);
-        
-        // Toggle theme on button click
-        themeToggle.addEventListener('click', () => {
-            const currentTheme = htmlElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-            
-            htmlElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            
-            updateThemeIcon(newTheme);
-        });
-        
-        function updateThemeIcon(theme) {
-            const icon = themeToggle.querySelector('i');
-            if (theme === 'dark') {
-                icon.classList.replace('fa-moon', 'fa-sun');
+        <!-- Bouton pour importer -->
+        <a href="{% url 'core:importer_etudiants' %}?classe={{ seance.cours.classe.id }}&next={% url 'core:appel_presence' seance.id %}" 
+           class="btn btn-sm btn-outline-primary">
+            <i class="fas fa-file-import me-1"></i> Importer
+        </a>
+    </div>
+
+    <!-- Liste des étudiants -->
+    <form method="post" id="appelForm">
+        {% csrf_token %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle" id="studentsTable">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nom & Prénom</th>
+                        <th>Matricule</th>
+                        <th class="text-center">Présent</th>
+                        <th class="text-center">Retard</th>
+                        <th class="text-center">Absent</th>
+                        <th class="text-center">Motif</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for etudiant in etudiants %}
+                        <tr id="row-{{ etudiant.id }}">
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <img src="{% static 'img/avatar.png' %}" alt="Photo" class="rounded-circle me-3" width="40" height="40">
+                                    <strong>{{ etudiant.nom }} {{ etudiant.prenom }}</strong>
+                                </div>
+                            </td>
+                            <td><code>{{ etudiant.matricule }}</code></td>
+                            {% for statut, icon in statuts %}
+                            <td class="text-center">
+                                <button type="button"
+                                        class="btn btn-sm rounded-circle presence-btn"
+                                        data-etudiant-id="{{ etudiant.id }}"
+                                        data-seance-id="{{ seance.id }}"
+                                        data-statut="{{ statut }}"
+                                        onclick="markPresence(this)">
+                                    <i class="fas {{ icon }}"></i>
+                                </button>
+                            </td>
+                            {% endfor %}
+                            <td class="text-center">
+                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                        onclick="removeStudent({{ etudiant.id }})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Submit -->
+        <div class="d-flex justify-content-between mt-4">
+            <a href="{% url 'core:seance_list' %}" class="btn btn-outline-secondary px-4">
+                <i class="fas fa-arrow-left me-2"></i> Retour
+            </a>
+            <button type="submit" class="btn btn-primary px-5 d-flex align-items-center gap-2">
+                <i class="fas fa-save"></i> Enregistrer l'appel
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Modal pour ajouter un étudiant -->
+<div class="modal fade" id="addStudentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Ajouter un étudiant</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addStudentForm">
+                    <div class="mb-3">
+                        <label class="form-label">Matricule *</label>
+                        <input type="text" class="form-control" name="matricule" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Nom *</label>
+                        <input type="text" class="form-control" name="nom" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Prénom</label>
+                        <input type="text" class="form-control" name="prenom">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" onclick="addStudent()">Ajouter</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Couleurs par statut
+    const statusColors = {
+        present: '#10b981',
+        retard: '#f59e0b',
+        absent: '#ef4444',
+        motif: '#8b5cf6',
+        default: '#e5e7eb'
+    };
+
+    // Mettre à jour l'apparence d'un bouton
+    function updateButton(btn, statut) {
+        const icon = btn.querySelector('i');
+        btn.style.backgroundColor = statusColors[statut];
+        btn.style.borderColor = statusColors[statut];
+        btn.style.color = 'white';
+        btn.style.opacity = 1;
+    }
+
+    // Réinitialiser un bouton
+    function resetButton(btn) {
+        btn.style.backgroundColor = statusColors['default'];
+        btn.style.borderColor = statusColors['default'];
+        btn.style.color = '#6c757d';
+        btn.style.opacity = 0.7;
+    }
+
+    // Marquer une présence via AJAX
+    function markPresence(btn) {
+        const etudiantId = btn.dataset.etudiantId;
+        const seanceId = btn.dataset.seanceId;
+        const statut = btn.dataset.statut;
+
+        fetch('{% url "core:presence_rapide" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: `etudiant_id=${etudiantId}&seance_id=${seanceId}&statut=${statut}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Réinitialiser tous les boutons de cet étudiant
+                document.querySelectorAll(`[data-etudiant-id="${etudiantId}"]`).forEach(resetButton);
+                
+                // Mettre à jour le bouton cliqué
+                updateButton(btn, statut);
+
+                // Mettre à jour le taux de présence
+                updateTauxPresence();
             } else {
-                icon.classList.replace('fa-sun', 'fa-moon');
+                alert('Erreur : ' + data.error);
             }
+        })
+        .catch(err => console.error('Erreur:', err));
+    }
+
+    // Mettre à jour le taux de présence
+    function updateTauxPresence() {
+        fetch('{% url "core:api_stats_cours" seance.cours.id %}')
+        .then(response => response.json())
+        .then(data => {
+            if (data.taux_presence !== undefined) {
+                const badge = document.getElementById("tauxPresence");
+                badge.textContent = data.taux_presence + "%";
+                badge.classList.remove("bg-success", "bg-danger");
+                badge.classList.add(data.taux_presence >= 75 ? "bg-success" : "bg-danger");
+            }
+        });
+    }
+
+    // Marquer tous les étudiants avec un statut
+    function markAll(statut) {
+        document.querySelectorAll(`[data-statut="${statut}"]`).forEach(btn => {
+            btn.click();
+        });
+    }
+
+    // Réinitialiser tous les boutons
+    function resetAll() {
+        document.querySelectorAll('.presence-btn').forEach(resetButton);
+    }
+
+    // Ajouter un étudiant
+    function addStudent() {
+        const formData = new FormData(document.getElementById('addStudentForm'));
+        
+        fetch('{% url "core:ajouter_etudiant_rapide" seance.id %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Ajouter la nouvelle ligne au tableau
+                const newRow = `
+                    <tr id="row-${data.etudiant.id}">
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <img src="{% static 'img/avatar.png' %}" alt="Photo" class="rounded-circle me-3" width="40" height="40">
+                                <strong>${data.etudiant.nom} ${data.etudiant.prenom}</strong>
+                            </div>
+                        </td>
+                        <td><code>${data.etudiant.matricule}</code></td>
+                        {% for statut, icon in statuts %}
+                        <td class="text-center">
+                            <button type="button"
+                                    class="btn btn-sm rounded-circle presence-btn"
+                                    data-etudiant-id="${data.etudiant.id}"
+                                    data-seance-id="{{ seance.id }}"
+                                    data-statut="{{ statut }}"
+                                    onclick="markPresence(this)">
+                                <i class="fas {{ icon }}"></i>
+                            </button>
+                        </td>
+                        {% endfor %}
+                        <td class="text-center">
+                            <button type="button" class="btn btn-sm btn-outline-danger" 
+                                    onclick="removeStudent(${data.etudiant.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                
+                $('#studentsTable tbody').append(newRow);
+                $('#addStudentModal').modal('hide');
+                document.getElementById('addStudentForm').reset();
+                
+                if (data.created) {
+                    alert('Étudiant ajouté avec succès !');
+                } else {
+                    alert('Étudiant existant déplacé vers cette classe !');
+                }
+            } else {
+                alert('Erreur : ' + data.error);
+            }
+        })
+        .catch(err => console.error('Erreur:', err));
+    }
+
+    // Supprimer un étudiant
+    function removeStudent(etudiantId) {
+        if (confirm('Êtes-vous sûr de vouloir supprimer cet étudiant ?')) {
+            fetch(`/admin/etudiant/${etudiantId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    $(`#row-${etudiantId}`).remove();
+                    alert('Étudiant supprimé avec succès !');
+                } else {
+                    alert('Erreur : ' + data.error);
+                }
+            })
+            .catch(err => console.error('Erreur:', err));
+        }
+    }
+
+    // Initialisation
+    document.addEventListener('DOMContentLoaded', function () {
+        const presences = JSON.parse('{{ presences|escapejs }}');
+        
+        // Appliquer les présences existantes
+        for (const [etudiantId, statut] of Object.entries(presences)) {
+            const btn = document.querySelector(`[data-etudiant-id="${etudiantId}"][data-statut="${statut}"]`);
+            if (btn) updateButton(btn, statut);
         }
         
-        // Update row style when status changes
-        document.querySelectorAll('.status-select').forEach(select => {
-            select.addEventListener('change', function() {
-                const row = this.closest('tr');
-                // Remove all status classes
-                row.classList.remove('status-present', 'status-late', 'status-absent', 'status-excused');
-                // Add the appropriate class
-                row.classList.add(`status-${this.value}`);
-            });
+        // Initialiser tous les boutons
+        document.querySelectorAll('.presence-btn').forEach(btn => {
+            if (!btn.style.backgroundColor) {
+                resetButton(btn);
+            }
         });
-    </script>
-</body>
-</html>
+    });
+</script>
+
+<style>
+    .presence-btn {
+        width: 40px;
+        height: 40px;
+        transition: all 0.2s ease;
+        opacity: 0.7;
+    }
+    .presence-btn:hover {
+        transform: scale(1.1);
+        opacity: 1;
+    }
+</style>
+{% endblock %}

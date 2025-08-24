@@ -1,0 +1,15 @@
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+th, td {
+    border: 1px solid #000;
+    padding: 4px;
+    text-align: left;
+}
+.badge {
+    padding: 2px 6px;
+    color: #fff;
+}
+.bg-success { background-color: #28a745; }
+.bg-danger { background-color: #dc3545; }

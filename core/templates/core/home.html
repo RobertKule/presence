@@ -1,0 +1,215 @@
+{% extends "core/base_auth.html" %}
+{% load static %}
+
+{% block title %}EduConnect - Gestion des Présences Intelligente{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="bg-primary text-white py-5" style="background: linear-gradient(135deg, #4f46e5, #3b82f6);">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-6 mb-5 mb-lg-0">
+        <h1 class="display-4 fw-bold mb-3">Gérez les présences en un clin d’œil</h1>
+        <p class="lead mb-4 opacity-90">
+          EduConnect simplifie l'appel de présence pour les enseignants. 
+          Importez vos étudiants, faites l'appel en temps réel, suivez les statistiques et exportez les rapports — tout en quelques clics.
+        </p>
+        <div class="d-flex flex-wrap gap-3">
+          <a href="{% url 'core:signup' %}" class="btn btn-light btn-lg px-4">
+            <i class="fas fa-user-plus me-2"></i> Créer un compte
+          </a>
+          <a href="{% url 'core:login' %}" class="btn btn-outline-light btn-lg px-4">
+            <i class="fas fa-sign-in-alt me-2"></i> Se connecter
+          </a>
+        </div>
+      </div>
+      <div class="col-lg-6 text-center">
+        <img src="https://placehold.co/500x400/4f46e5/ffffff?text=EduConnect+App" 
+             alt="Interface EduConnect" 
+             class="img-fluid rounded shadow-lg" 
+             style="max-height: 400px; object-fit: cover;">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2 class="fw-bold">Pourquoi choisir EduConnect ?</h2>
+      <p class="text-muted">Des outils puissants pour gagner du temps chaque jour</p>
+    </div>
+
+    <div class="row g-4">
+      <!-- Feature 1 -->
+      <div class="col-md-4 text-center">
+        <div class="p-4 bg-light rounded shadow-sm h-100">
+          <div class="bg-primary bg-gradient text-white rounded-circle mx-auto d-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+            <i class="fas fa-check fa-lg"></i>
+          </div>
+          <h4>Appel rapide</h4>
+          <p class="text-muted">Faites l’appel en 10 secondes avec des boutons intuitifs. Compatible mobile et desktop.</p>
+        </div>
+      </div>
+
+      <!-- Feature 2 -->
+      <div class="col-md-4 text-center">
+        <div class="p-4 bg-light rounded shadow-sm h-100">
+          <div class="bg-success bg-gradient text-white rounded-circle mx-auto d-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+            <i class="fas fa-file-excel fa-lg"></i>
+          </div>
+          <h4>Import & Export</h4>
+          <p class="text-muted">Importez vos étudiants via Excel/CSV. Exportez les présences en PDF ou Excel pour vos rapports.</p>
+        </div>
+      </div>
+
+      <!-- Feature 3 -->
+      <div class="col-md-4 text-center">
+        <div class="p-4 bg-light rounded shadow-sm h-100">
+          <div class="bg-info bg-gradient text-white rounded-circle mx-auto d-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+            <i class="fas fa-chart-bar fa-lg"></i>
+          </div>
+          <h4>Statistiques en temps réel</h4>
+          <p class="text-muted">Suivez les taux de présence par cours, par étudiant, et identifiez les absences répétées.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Stats Section -->
+<section class="py-5 bg-light">
+  <div class="container">
+    <div class="row text-center g-4">
+      <div class="col-md-3">
+        <h3 class="text-primary" id="stat1">0</h3>
+        <p class="mb-0">Appels de présence</p>
+      </div>
+      <div class="col-md-3">
+        <h3 class="text-success" id="stat2">0</h3>
+        <p class="mb-0">Étudiants gérés</p>
+      </div>
+      <div class="col-md-3">
+        <h3 class="text-warning" id="stat3">0</h3>
+        <p class="mb-0">Cours actifs</p>
+      </div>
+      <div class="col-md-3">
+        <h3 class="text-danger" id="stat4">0</h3>
+        <p class="mb-0">Heures économisées</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How It Works -->
+<section class="py-5">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2 class="fw-bold">Comment ça marche ?</h2>
+      <p class="text-muted">En 3 étapes simples</p>
+    </div>
+
+    <div class="row g-5 align-items-center">
+      <div class="col-lg-6 order-lg-2">
+        <img src="https://placehold.co/500x300/6366f1/ffffff?text=Créer+un+cours" class="img-fluid rounded shadow">
+      </div>
+      <div class="col-lg-6">
+        <div class="d-flex align-items-start mb-4">
+          <span class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; font-weight: bold;">1</span>
+          <div>
+            <h4>Créez vos cours</h4>
+            <p>Associez chaque cours à une classe et gérez vos séances facilement.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-5 align-items-center mt-4">
+      <div class="col-lg-6">
+        <img src="https://placehold.co/500x300/10b981/ffffff?text=Appel+de+présence" class="img-fluid rounded shadow">
+      </div>
+      <div class="col-lg-6">
+        <div class="d-flex align-items-start mb-4">
+          <span class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; font-weight: bold;">2</span>
+          <div>
+            <h4>Faites l’appel</h4>
+            <p>Enregistrez les présences, retards ou absences avec un simple clic.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-5 align-items-center mt-4">
+      <div class="col-lg-6 order-lg-2">
+        <img src="https://placehold.co/500x300/f59e0b/ffffff?text=Statistiques" class="img-fluid rounded shadow">
+      </div>
+      <div class="col-lg-6">
+        <div class="d-flex align-items-start mb-4">
+          <span class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; font-weight: bold;">3</span>
+          <div>
+            <h4>Suivez les statistiques</h4>
+            <p>Visualisez les tendances, exportez les données et prenez des décisions éclairées.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5 bg-primary text-white text-center">
+  <div class="container">
+    <h2 class="fw-bold mb-3">Prêt à gagner du temps ?</h2>
+    <p class="lead mb-4 opacity-90">Rejoignez des centaines d'enseignants déjà convaincus.</p>
+    <a href="{% url 'core:signup' %}" class="btn btn-light btn-lg px-5">
+      <i class="fas fa-user-plus me-2"></i> Commencez gratuitement
+    </a>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="py-4 text-center text-muted small">
+  <div class="container">
+    <p>&copy; 2025 EduConnect. Tous droits réservés. Créé avec passion par Robert KULE.</p>
+  </div>
+</footer>
+
+{% endblock %}
+{% block extra_js %}
+<script>
+  // Animation des chiffres
+  function animateValue(id, start, end, duration) {
+    const obj = document.getElementById(id);
+    const range = end - start;
+    const increment = range / (duration / 16);
+    let current = start;
+    const timer = setInterval(() => {
+      current += increment;
+      if (current >= end) {
+        clearInterval(timer);
+        current = end;
+      }
+      obj.textContent = Math.floor(current).toLocaleString();
+    }, 16);
+  }
+
+  // Données dynamiques depuis le backend
+  const stats = {
+    appels: {{ stats.total_appels }},
+    etudiants: {{ stats.total_etudiants }},
+    cours: {{ stats.total_cours }},
+    heures: {{ stats.total_heures_gagnees }}
+  };
+
+  // Lancer les animations quand la page est chargée
+  document.addEventListener("DOMContentLoaded", () => {
+    setTimeout(() => {
+      animateValue("stat1", 0, stats.appels, 2000);
+      animateValue("stat2", 0, stats.etudiants, 2200);
+      animateValue("stat3", 0, stats.cours, 1800);
+      animateValue("stat4", 0, stats.heures, 1600);
+    }, 500);
+  });
+</script>
+{% endblock %}

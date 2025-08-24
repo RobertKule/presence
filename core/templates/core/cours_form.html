@@ -1,225 +1,140 @@
-<!DOCTYPE html>
-<html lang="fr" data-theme="light">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ form.instance.pk|yesno:"Modifier un cours,Ajouter un cours" }} | EduConnect</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        :root {
-            --primary-color: #4f46e5;
-            --primary-hover: #4338ca;
-            --text-color: #1f2937;
-            --bg-color: #f9fafb;
-            --card-bg: #ffffff;
-            --border-color: #e5e7eb;
-            --error-color: #ef4444;
-        }
+{% extends "core/base.html" %}
+{% load static %}
 
-        [data-theme="dark"] {
-            --primary-color: #6366f1;
-            --primary-hover: #818cf8;
-            --text-color: #f3f4f6;
-            --bg-color: #111827;
-            --card-bg: #1f2937;
-            --border-color: #374151;
-            --error-color: #f87171;
-        }
+{% block title %}{{ title }} | EduConnect{% endblock %}
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-        }
+{% block header %}
+    <i class="fas fa-book me-2"></i> {{ title }}
+{% endblock %}
 
-        .theme-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            z-index: 100;
-        }
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
 
-        .form-input {
-            transition: all 0.3s ease;
-        }
+                        <div class="mb-4">
+                            <label for="{{ form.nom.id_for_label }}" class="form-label">
+                                <i class="fas fa-tag me-2"></i> Nom du cours
+                            </label>
+                            {{ form.nom }}
+                            {% if form.nom.errors %}
+                                <div class="text-danger small mt-1">
+                                    <i class="fas fa-exclamation-circle me-1"></i>
+                                    {% for error in form.nom.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
 
-        .form-input:focus {
-            transform: scale(1.01);
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
-        }
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label for="{{ form.classe.id_for_label }}" class="form-label">
+                                    <i class="fas fa-building me-2"></i> Classe
+                                </label>
+                                {{ form.classe }}
+                                {% if form.classe.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.classe.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.type_cours.id_for_label }}" class="form-label">
+                                    <i class="fas fa-list me-2"></i> Type de cours
+                                </label>
+                                {{ form.type_cours }}
+                                {% if form.type_cours.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.type_cours.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+                        <div class="mb-4">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">
+                                <i class="fas fa-align-left me-2"></i> Description
+                            </label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.description.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
 
-        .form-group {
-            animation: fadeIn 0.4s ease forwards;
-        }
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label for="{{ form.credit.id_for_label }}" class="form-label">
+                                    <i class="fas fa-award me-2"></i> Crédits
+                                </label>
+                                {{ form.credit }}
+                                {% if form.credit.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.credit.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.volume_horaire.id_for_label }}" class="form-label">
+                                    <i class="fas fa-clock me-2"></i> Volume horaire (h)
+                                </label>
+                                {{ form.volume_horaire }}
+                                {% if form.volume_horaire.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.volume_horaire.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
 
-        .errorlist {
-            color: var(--error-color);
-            margin-top: 0.25rem;
-            font-size: 0.875rem;
-            list-style: none;
-            padding-left: 0;
-        }
-    </style>
-</head>
-<body class="min-h-screen bg-gray-50 dark:bg-gray-900">
-    <!-- Theme toggle button -->
-    <div class="theme-toggle" id="themeToggle">
-        <i class="fas fa-moon text-gray-800 dark:text-gray-200"></i>
-    </div>
-
-    <div class="container mx-auto px-4 py-8 max-w-2xl">
-        <!-- Header -->
-        <div class="mb-8 text-center">
-            <h1 class="text-3xl font-bold text-gray-800 dark:text-white mb-2">
-                <i class="fas fa-book mr-2"></i>
-                {{ form.instance.pk|yesno:"Modifier le cours,Ajouter un nouveau cours" }}
-            </h1>
-            <p class="text-gray-600 dark:text-gray-300">
-                {{ form.instance.pk|yesno:"Mettez à jour les informations de ce cours,Remplissez les informations du cours" }}
-            </p>
-        </div>
-
-        <!-- Form Container -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden p-6 mb-6">
-            <form method="post" class="space-y-6">
-                {% csrf_token %}
-                
-                {% for field in form %}
-                <div class="form-group" style="animation-delay: {{ forloop.counter0|divisibleby:2|yesno:'0.1s,0.2s' }}">
-                    <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        {{ field.label }}
-                        {% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
-                    </label>
-                    
-                    {{ field }}
-                    
-                    {% if field.help_text %}
-                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ field.help_text }}</p>
-                    {% endif %}
-                    
-                    {% for error in field.errors %}
-                    <p class="mt-1 text-xs text-red-500">{{ error }}</p>
-                    {% endfor %}
+                        <!-- Actions -->
+                        <div class="d-flex justify-content-between mt-5">
+                            <a href="{% url 'core:mes_cours' %}" class="btn btn-outline-secondary px-4">
+                                <i class="fas fa-arrow-left me-2"></i> Retour
+                            </a>
+                            <button type="submit" class="btn btn-primary px-5 d-flex align-items-center gap-2">
+                                <i class="fas fa-save"></i> Enregistrer
+                            </button>
+                        </div>
+                    </form>
                 </div>
-                {% endfor %}
-                
-                <div class="flex justify-between pt-4">
-                    <a href="{% url 'cours_list' %}" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                        <i class="fas fa-arrow-left mr-2"></i> Retour à la liste
-                    </a>
-                    <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
-                        <i class="fas fa-save mr-2"></i> Enregistrer
-                    </button>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
+</div>
+{% endblock %}
 
-    <script>
-        // Theme toggle functionality
-        const themeToggle = document.getElementById('themeToggle');
-        const htmlElement = document.documentElement;
-        
-        // Check for saved theme preference or use preferred color scheme
-        const savedTheme = localStorage.getItem('theme') || 
-                           (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-        
-        // Apply the saved theme
-        htmlElement.setAttribute('data-theme', savedTheme);
-        
-        // Update icon based on theme
-        updateThemeIcon(savedTheme);
-        
-        // Toggle theme on button click
-        themeToggle.addEventListener('click', () => {
-            const currentTheme = htmlElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-            
-            htmlElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            
-            updateThemeIcon(newTheme);
+{% block extra_js %}
+<script>
+    // Animation focus
+    document.querySelectorAll('input, select, textarea').forEach(el => {
+        el.addEventListener('focus', () => {
+            el.parentElement.classList.add('focused');
         });
-        
-        function updateThemeIcon(theme) {
-            const icon = themeToggle.querySelector('i');
-            if (theme === 'dark') {
-                icon.classList.replace('fa-moon', 'fa-sun');
-            } else {
-                icon.classList.replace('fa-sun', 'fa-moon');
-            }
+        el.addEventListener('blur', () => {
+            el.parentElement.classList.remove('focused');
+        });
+    });
+
+    // Validation en temps réel
+    document.getElementById('{{ form.nom.id_for_label }}').addEventListener('input', function() {
+        if (this.value.length < 3) {
+            this.setCustomValidity('Le nom doit contenir au moins 3 caractères');
+        } else {
+            this.setCustomValidity('');
         }
-
-        // Add Tailwind classes to form inputs
-        document.addEventListener('DOMContentLoaded', function() {
-            const inputs = document.querySelectorAll('input, textarea, select');
-            inputs.forEach(input => {
-                input.classList.add(
-                    'form-input',
-                    'w-full',
-                    'px-3',
-                    'py-2',
-                    'border',
-                    'border-gray-300',
-                    'dark:border-gray-600',
-                    'rounded-md',
-                    'shadow-sm',
-                    'focus:outline-none',
-                    'focus:ring-1',
-                    'focus:ring-blue-500',
-                    'focus:border-blue-500',
-                    'bg-white',
-                    'dark:bg-gray-700',
-                    'text-gray-900',
-                    'dark:text-gray-100'
-                );
-                
-                // Add specific classes for select elements
-                if (input.tagName === 'SELECT') {
-                    input.classList.add('pr-8');
-                }
-            });
-            
-            // Style checkboxes differently
-            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-            checkboxes.forEach(checkbox => {
-                checkbox.classList.remove(
-                    'form-input',
-                    'w-full',
-                    'px-3',
-                    'py-2',
-                    'border',
-                    'rounded-md',
-                    'shadow-sm'
-                );
-                checkbox.classList.add(
-                    'h-4',
-                    'w-4',
-                    'text-blue-600',
-                    'focus:ring-blue-500',
-                    'border-gray-300',
-                    'dark:border-gray-600',
-                    'rounded'
-                );
-            });
-        });
-    </script>
-</body>
-</html>
+    });
+</script>
+<style>
+    .form-control:focus {
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+    }
+    .focused {
+        transform: scale(1.01);
+    }
+</style>
+{% endblock %}
