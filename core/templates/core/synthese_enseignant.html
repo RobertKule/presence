@@ -1,0 +1,210 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Synthèse | EduConnect{% endblock %}
+
+{% block header %}
+    <i class="fas fa-tachometer-alt me-2"></i> Synthèse Générale
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <!-- Statistiques Globales -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-3 col-md-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body text-center">
+                    <div class="avatar bg-primary bg-opacity-10 rounded-circle mx-auto mb-3" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-book fa-lg text-primary"></i>
+                    </div>
+                    <h4 class="mb-1">{{ stats.total_cours }}</h4>
+                    <p class="text-muted mb-0">Cours</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body text-center">
+                    <div class="avatar bg-info bg-opacity-10 rounded-circle mx-auto mb-3" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-building fa-lg text-info"></i>
+                    </div>
+                    <h4 class="mb-1">{{ stats.total_classes }}</h4>
+                    <p class="text-muted mb-0">Classes</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body text-center">
+                    <div class="avatar bg-success bg-opacity-10 rounded-circle mx-auto mb-3" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-users fa-lg text-success"></i>
+                    </div>
+                    <h4 class="mb-1">{{ stats.total_etudiants }}</h4>
+                    <p class="text-muted mb-0">Étudiants</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body text-center">
+                    <div class="avatar bg-warning bg-opacity-10 rounded-circle mx-auto mb-3" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-calendar-check fa-lg text-warning"></i>
+                    </div>
+                    <h4 class="mb-1">{{ stats.total_seances }}</h4>
+                    <p class="text-muted mb-0">Séances</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cours par classe -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-book-open text-primary me-2"></i> Répartition par Classe</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Classe</th>
+                                    <th>Cours</th>
+                                    <th>Étudiants</th>
+                                    <th>Séances</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in stats.cours_par_classe %}
+                                    <tr>
+                                        <td><strong>{{ item.classe }}</strong></td>
+                                        <td>{{ item.nombre_cours }}</td>
+                                        <td>{{ item.nombre_etudiants }}</td>
+                                        <td>{{ item.nombre_seances }}</td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted">Aucun cours pour l'instant</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dernières & Prochaines Séances -->
+    <div class="row g-4">
+        <!-- Dernières séances -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-history text-muted me-2"></i> Dernières Séances</h5>
+                    <a href="{% url 'core:seance_list' %}" class="text-decoration-none small">Voir tout</a>
+                </div>
+                <div class="card-body p-0">
+                    {% if dernieres_seances %}
+                        <ul class="list-group list-group-flush">
+                            {% for s in dernieres_seances %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ s.cours.nom }}</strong>
+                                        <small class="d-block text-muted">
+                                            {{ s.date|date:"d/m/Y" }} • {{ s.heure_debut|time:"H:i" }}
+                                        </small>
+                                    </div>
+                                    <span class="badge bg-{% if s.taux_presence|add:0 >= 75 %}success{% else %}danger{% endif %} rounded-pill">
+    {{ s.taux_presence|floatformat:0 }}%
+</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-calendar-slash text-muted" style="font-size: 2rem; opacity: 0.3;"></i>
+                            <p class="text-muted mt-3">Aucune séance passée</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Prochaines séances -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-clock text-success me-2"></i> Prochaines Séances</h5>
+                    <a href="{% url 'core:seance_list' %}" class="text-decoration-none small">Voir tout</a>
+                </div>
+                <div class="card-body p-0">
+                    {% if prochaines_seances %}
+                        <ul class="list-group list-group-flush">
+                            {% for s in prochaines_seances %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ s.cours.nom }}</strong>
+                                        <small class="d-block text-muted">
+                                            {{ s.date|date:"d/m/Y" }} • {{ s.heure_debut|time:"H:i" }}
+                                        </small>
+                                    </div>
+                                    <span class="badge bg-primary">{{ s.cours.classe.nom }}</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-calendar-check text-muted" style="font-size: 2rem; opacity: 0.3;"></i>
+                            <p class="text-muted mt-3">Aucune séance à venir</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cours récents -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-book text-warning me-2"></i> Cours Récents</h5>
+                    <a href="{% url 'core:mes_cours' %}" class="text-decoration-none small">Voir tout</a>
+                </div>
+                <div class="card-body p-0">
+                    {% if cours %}
+                        <div class="row g-3 p-3">
+                            {% for c in cours %}
+                                <div class="col-md-6 col-lg-4">
+                                    <div class="card h-100 border-0 shadow-sm">
+                                        <div class="card-body">
+                                            <h6 class="card-title text-dark">{{ c.nom }}</h6>
+                                            <p class="text-muted small mb-1">
+                                                <i class="fas fa-building me-1"></i> {{ c.classe.nom }}
+                                            </p>
+                                            <p class="text-muted small mb-2">
+                                                <i class="fas fa-calendar-check me-1"></i> {{ c.seances_count }} séances
+                                            </p>
+                                            <a href="{% url 'core:cours_detail' c.pk %}" class="btn btn-sm btn-outline-primary">Détails</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-book-slash text-muted" style="font-size: 2rem; opacity: 0.3;"></i>
+                            <p class="text-muted mt-3">Aucun cours pour l'instant.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

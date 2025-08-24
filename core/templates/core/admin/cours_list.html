@@ -1,0 +1,197 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Gestion des Cours | Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-book me-2"></i> Gestion des Cours</h2>
+        <a href="{% url 'core:admin_cours_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i> Nouveau Cours
+        </a>
+    </div>
+
+    <!-- Filtres et Recherche -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <select name="enseignant" class="form-select">
+                        <option value="">Tous les enseignants</option>
+                        {% for enseignant in enseignants %}
+                        <option value="{{ enseignant.id }}" {% if enseignant_selected == enseignant.id %}selected{% endif %}>
+                            {{ enseignant.get_full_name|default:enseignant.username }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="classe" class="form-select">
+                        <option value="">Toutes les classes</option>
+                        {% for classe in classes %}
+                        <option value="{{ classe.id }}" {% if classe_selected == classe.id %}selected{% endif %}>
+                            {{ classe.nom }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <input type="text" name="q" class="form-control" placeholder="Rechercher par nom de cours..." value="{{ query }}">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-outline-primary w-100">
+                        <i class="fas fa-filter me-1"></i> Filtrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tableau -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Nom du Cours</th>
+                            <th>Classe</th>
+                            <th>Enseignant</th>
+                            <th>Séances</th>
+                            <th>Créé le</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cours in cours %}
+                        <tr>
+                            <td>
+                                <strong>{{ cours.nom }}</strong>
+                                {% if cours.description %}
+                                <br><small class="text-muted">{{ cours.description|truncatewords:8 }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-primary">{{ cours.classe.nom }}</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-info">
+                                    {{ cours.enseignant.get_full_name|default:cours.enseignant.username }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">
+                                    {{ cours.seances.count }} séance{{ cours.seances.count|pluralize }}
+                                </span>
+                            </td>
+                            <td>
+                                <small class="text-muted">{{ cours.created_at|date:"d/m/Y" }}</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-{{ cours.is_actif|yesno:'success,secondary' }}">
+                                    {{ cours.is_actif|yesno:"Actif,Inactif" }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{% url 'core:admin_cours_update' cours.pk %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'core:admin_cours_delete' cours.pk %}" class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">
+                                <i class="fas fa-book fa-2x mb-3" style="opacity: 0.3;"></i>
+                                <p>Aucun cours trouvé</p>
+                                {% if enseignant_selected or classe_selected or query %}
+                                <a href="?" class="btn btn-outline-primary btn-sm me-2">
+                                    Réinitialiser les filtres
+                                </a>
+                                {% endif %}
+                                <a href="{% url 'core:admin_cours_create' %}" class="btn btn-primary btn-sm">
+                                    Créer un cours
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if cours.has_other_pages %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if cours.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ cours.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if enseignant_selected %}&enseignant={{ enseignant_selected }}{% endif %}{% if classe_selected %}&classe={{ classe_selected }}{% endif %}">
+                    Précédent
+                </a>
+            </li>
+            {% endif %}
+            
+            {% for i in cours.paginator.page_range %}
+            <li class="page-item {% if cours.number == i %}active{% endif %}">
+                <a class="page-link" href="?page={{ i }}{% if query %}&q={{ query }}{% endif %}{% if enseignant_selected %}&enseignant={{ enseignant_selected }}{% endif %}{% if classe_selected %}&classe={{ classe_selected }}{% endif %}">
+                    {{ i }}
+                </a>
+            </li>
+            {% endfor %}
+            
+            {% if cours.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ cours.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if enseignant_selected %}&enseignant={{ enseignant_selected }}{% endif %}{% if classe_selected %}&classe={{ classe_selected }}{% endif %}">
+                    Suivant
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
+    <!-- Statistiques -->
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h4>{{ cours.paginator.count }}</h4>
+                    <p class="mb-0">Cours total</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h4>{{ cours_actifs }}</h4>
+                    <p class="mb-0">Cours actifs</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h4>{{ total_seances }}</h4>
+                    <p class="mb-0">Séances total</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body text-center">
+                    <h4>{{ enseignants_distincts }}</h4>
+                    <p class="mb-0">Enseignants</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
