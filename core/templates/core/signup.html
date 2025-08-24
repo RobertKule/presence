@@ -1,388 +1,175 @@
-<!DOCTYPE html>
-<html lang="fr" data-theme="light">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inscription Enseignant | EduConnect</title>
-    <style>
-        :root {
-            --primary-color: #4f46e5;
-            --primary-hover: #4338ca;
-            --text-color: #1f2937;
-            --bg-color: #f9fafb;
-            --card-bg: #ffffff;
-            --border-color: #e5e7eb;
-            --error-color: #ef4444;
-            --success-color: #10b981;
-            --transition: all 0.3s ease;
-        }
+{% extends "core/base_auth.html" %}
+{% load static %}
 
-        [data-theme="dark"] {
-            --primary-color: #6366f1;
-            --primary-hover: #818cf8;
-            --text-color: #f3f4f6;
-            --bg-color: #111827;
-            --card-bg: #1f2937;
-            --border-color: #374151;
-            --error-color: #f87171;
-            --success-color: #6ee7b7;
-        }
+{% block title %}Inscription | EduConnect{% endblock %}
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            transition: var(--transition);
-        }
+{% block content %}
+<div class="d-flex flex-column align-items-center justify-content-center min-vh-100 py-4 px-3">    
+        <!-- Sign-up Card -->
+    <div class="card shadow-sm border-0 rounded-4 overflow-hidden w-100" style="max-width: 800px;">
+        <div class="card-body p-4">
+            <h2 class="text-center mb-4 text-primary">
+                <i class="fas fa-user-plus me-2"></i> Créer un compte Enseignant
+            </h2>
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><rect fill="%234f46e555" width="50" height="50" x="0" y="0"/><rect fill="%234f46e555" width="50" height="50" x="50" y="50"/></svg>');
-            background-size: 60px 60px;
-            padding: 20px;
-        }
+            <form method="post" id="signupForm" class="needs-validation" novalidate>
+                {% csrf_token %}
 
-        .logo {
-            width: 120px;
-            margin-bottom: 30px;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
-        }
+                <div class="row g-4">
+                    <!-- Prénom -->
+                    <div class="col-md-6">
+                        <label for="{{ form.first_name.id_for_label }}" class="form-label">
+                            <i class="fas fa-user me-1 text-muted"></i> {{ form.first_name.label }}
+                        </label>
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}
+                            <div class="text-danger small mt-1">
+                                <i class="fas fa-exclamation-circle me-1"></i>
+                                {% for error in form.first_name.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
 
-        .signup-container {
-            background-color: var(--card-bg);
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            padding: 40px;
-            width: 100%;
-            max-width: 800px; /* Augmenté pour accommoder la grille */
-            border: 1px solid var(--border-color);
-            transform: translateY(0);
-            animation: fadeInUp 0.5s ease;
-        }
+                    <!-- Nom -->
+                    <div class="col-md-6">
+                        <label for="{{ form.last_name.id_for_label }}" class="form-label">
+                            <i class="fas fa-user me-1 text-muted"></i> {{ form.last_name.label }}
+                        </label>
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}
+                            <div class="text-danger small mt-1">
+                                <i class="fas fa-exclamation-circle me-1"></i>
+                                {% for error in form.last_name.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
 
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+                    <!-- Email -->
+                    <div class="col-md-6">
+                        <label for="{{ form.email.id_for_label }}" class="form-label">
+                            <i class="fas fa-envelope me-1 text-muted"></i> {{ form.email.label }}
+                        </label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="text-danger small mt-1">
+                                <i class="fas fa-exclamation-circle me-1"></i>
+                                {% for error in form.email.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
 
-        h2 {
-            color: var(--primary-color);
-            margin-bottom: 24px;
-            text-align: center;
-            font-weight: 600;
-            grid-column: 1 / -1; /* Prend toute la largeur */
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 20px;
-        }
-
-        @media (min-width: 768px) {
-            .form-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            /* Faire s'étendre certains champs sur 2 colonnes */
-            .full-width {
-                grid-column: 1 / -1;
-            }
-        }
-
-        .form-group {
-            margin-bottom: 0; /* Géré par le gap de la grille */
-            position: relative;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: var(--text-color);
-        }
-
-        input, select {
-            width: 100%;
-            padding: 12px 16px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-size: 16px;
-        }
-
-        input:focus, select:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
-        }
-
-        .errorlist {
-            color: var(--error-color);
-            margin-top: 5px;
-            font-size: 14px;
-            list-style: none;
-        }
-
-        button {
-            grid-column: 1 / -1; /* Prend toute la largeur */
-            padding: 14px;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: var(--transition);
-        }
-
-        button:hover {
-            background-color: var(--primary-hover);
-            transform: translateY(-2px);
-        }
-
-        .login-link {
-            text-align: center;
-            margin-top: 24px;
-            color: var(--text-color);
-            grid-column: 1 / -1;
-        }
-
-        .login-link a {
-            color: var(--primary-color);
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .login-link a:hover {
-            text-decoration: underline;
-        }
-
-        .theme-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            z-index: 100;
-        }
-
-        .theme-toggle i {
-            font-size: 20px;
-            color: var(--text-color);
-        }
-
-        .password-hint {
-            font-size: 12px;
-            color: var(--text-color);
-            opacity: 0.7;
-            margin-top: 5px;
-        }
-
-        .password-strength {
-            height: 4px;
-            background: #e5e7eb;
-            border-radius: 2px;
-            margin-top: 8px;
-            overflow: hidden;
-        }
-
-        .password-strength-bar {
-            height: 100%;
-            width: 0%;
-            background: var(--error-color);
-            transition: width 0.3s ease;
-        }
-
-        @media (max-width: 480px) {
-            .signup-container {
-                padding: 30px 20px;
-            }
-        }
-    </style>
-    <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-</head>
-<body>
-    <!-- Theme toggle button -->
-    <div class="theme-toggle" id="themeToggle">
-        <i class="fas fa-moon"></i>
-    </div>
-
-    <!-- Logo - Replace with your actual logo -->
-    <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='40' fill='%234f46e5'/><path d='M30,30 L70,70 M70,30 L30,70' stroke='white' stroke-width='8' stroke-linecap='round'/></svg>" alt="EduConnect Logo" class="logo">
-
-    <div class="signup-container">
-        <h2>Créer un compte enseignant</h2>
-        
-        <form method="post" id="signupForm" class="form-grid">
-            {% csrf_token %}
-            
-            <!-- Première colonne -->
-            <div class="form-group">
-                <label for="id_first_name">Prénom</label>
-                <input type="text" name="first_name" id="id_first_name" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="id_last_name">Nom</label>
-                <input type="text" name="last_name" id="id_last_name" required>
-            </div>
-            
-            <!-- Deuxième colonne (sur grand écran) -->
-            <div class="form-group">
-                <label for="id_email">Email</label>
-                <input type="email" name="email" id="id_email" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="id_username">Nom d'utilisateur</label>
-                <input type="text" name="username" id="id_username" required>
-            </div>
-            
-            <!-- Champs mot de passe prenant toute la largeur -->
-            <div class="form-group full-width">
-                <label for="id_password1">Mot de passe</label>
-                <input type="password" name="password1" id="id_password1" required>
-                <div class="password-strength">
-                    <div class="password-strength-bar" id="passwordStrength"></div>
+                    <!-- Username -->
+                    <div class="col-md-6">
+                        <label for="{{ form.username.id_for_label }}" class="form-label">
+                            <i class="fas fa-at me-1 text-muted"></i> {{ form.username.label }}
+                        </label>
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                            <div class="text-danger small mt-1">
+                                <i class="fas fa-exclamation-circle me-1"></i>
+                                {% for error in form.username.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
                 </div>
-                <span class="password-hint">Au moins 8 caractères avec des chiffres et lettres</span>
-            </div>
-            
-            <div class="form-group full-width">
-                <label for="id_password2">Confirmation du mot de passe</label>
-                <input type="password" name="password2" id="id_password2" required>
-            </div>
-            
-            <!-- Autres champs optionnels -->
-            <div class="form-group">
-                <label for="id_subject">Matière enseignée</label>
-                <select name="subject" id="id_subject">
-                    <option value="math">Mathématiques</option>
-                    <option value="french">Français</option>
-                    <option value="science">Sciences</option>
-                    <option value="history">Histoire</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label for="id_grade">Niveau enseigné</label>
-                <select name="grade" id="id_grade">
-                    <option value="primary">Primaire</option>
-                    <option value="middle">Collège</option>
-                    <option value="high">Lycée</option>
-                </select>
-            </div>
-            
-            <button type="submit">S'inscrire</button>
-            
-            <p class="login-link">Déjà inscrit ? <a href="{% url 'login' %}">Se connecter</a></p>
-        </form>
+
+                <!-- Mot de passe -->
+                <div class="mt-4">
+                    <label for="{{ form.password1.id_for_label }}" class="form-label">
+                        <i class="fas fa-lock me-1 text-muted"></i> {{ form.password1.label }}
+                    </label>
+                    {{ form.password1 }}
+                    <div class="password-strength mt-2">
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-danger" id="passwordStrengthBar" role="progressbar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <small class="text-muted mt-1 d-block">Le mot de passe doit contenir au moins 8 caractères, avec lettres, chiffres et symboles.</small>
+                    {% if form.password1.errors %}
+                        <div class="text-danger small mt-1">
+                            <i class="fas fa-exclamation-circle me-1"></i>
+                            {% for error in form.password1.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Confirmation mot de passe -->
+                <div class="mt-4">
+                    <label for="{{ form.password2.id_for_label }}" class="form-label">
+                        <i class="fas fa-lock me-1 text-muted"></i> {{ form.password2.label }}
+                    </label>
+                    {{ form.password2 }}
+                    {% if form.password2.errors %}
+                        <div class="text-danger small mt-1">
+                            <i class="fas fa-exclamation-circle me-1"></i>
+                            {% for error in form.password2.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Submit -->
+                <button type="submit" class="btn btn-primary w-100 py-3 mt-4 position-relative">
+                    <span class="position-absolute start-0 ms-3 spinner-border spinner-border-sm d-none" role="status" id="signupSpinner"></span>
+                    <span id="signupText"><i class="fas fa-user-plus me-2"></i>S'inscrire</span>
+                </button>
+            </form>
+
+            <!-- Login Link -->
+            <p class="text-center mt-4 text-muted small">
+                Déjà inscrit ? 
+                <a href="{% url 'core:login' %}" class="text-primary text-decoration-none fw-medium">
+                    Se connecter
+                </a>
+            </p>
+        </div>
     </div>
 
-    <script>
-        // Theme toggle functionality
-        const themeToggle = document.getElementById('themeToggle');
-        const htmlElement = document.documentElement;
-        
-        // Check for saved theme preference or use preferred color scheme
-        const savedTheme = localStorage.getItem('theme') || 
-                           (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-        
-        // Apply the saved theme
-        htmlElement.setAttribute('data-theme', savedTheme);
-        
-        // Update icon based on theme
-        updateThemeIcon(savedTheme);
-        
-        // Toggle theme on button click
-        themeToggle.addEventListener('click', () => {
-            const currentTheme = htmlElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-            
-            htmlElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            
-            updateThemeIcon(newTheme);
-        });
-        
-        function updateThemeIcon(theme) {
-            const icon = themeToggle.querySelector('i');
-            if (theme === 'dark') {
-                icon.classList.replace('fa-moon', 'fa-sun');
+    <!-- Footer -->
+    <footer class="mt-4 text-center text-muted small">
+        &copy; 2025 EduConnect. Tous droits réservés.
+    </footer>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Password Strength
+    const passwordInput = document.getElementById('{{ form.password1.id_for_label }}');
+    const passwordStrengthBar = document.getElementById('passwordStrengthBar');
+
+    if (passwordInput) {
+        passwordInput.addEventListener('input', function () {
+            const password = this.value;
+            let score = 0;
+
+            if (password.length >= 8) score++;
+            if (/[A-Z]/.test(password)) score++;
+            if (/[0-9]/.test(password)) score++;
+            if (/[^A-Za-z0-9]/.test(password)) score++;
+            if (password.length >= 12) score++;
+
+            const width = score * 20;
+            passwordStrengthBar.style.width = `${width}%`;
+
+            if (score < 3) {
+                passwordStrengthBar.className = 'progress-bar bg-danger';
+            } else if (score < 5) {
+                passwordStrengthBar.className = 'progress-bar bg-warning';
             } else {
-                icon.classList.replace('fa-sun', 'fa-moon');
+                passwordStrengthBar.className = 'progress-bar bg-success';
             }
-        }
-        
-        // Password strength indicator
-        const passwordInput = document.getElementById('id_password1');
-        const passwordStrength = document.getElementById('passwordStrength');
-        
-        if (passwordInput) {
-            passwordInput.addEventListener('input', function() {
-                const password = this.value;
-                let strength = 0;
-                
-                // Length check
-                if (password.length > 7) strength += 1;
-                if (password.length > 11) strength += 1;
-                
-                // Character variety checks
-                if (/[A-Z]/.test(password)) strength += 1;
-                if (/[0-9]/.test(password)) strength += 1;
-                if (/[^A-Za-z0-9]/.test(password)) strength += 1;
-                
-                // Update strength bar
-                const width = strength * 20;
-                passwordStrength.style.width = `${width}%`;
-                
-                // Update color based on strength
-                if (strength < 2) {
-                    passwordStrength.style.backgroundColor = 'var(--error-color)';
-                } else if (strength < 4) {
-                    passwordStrength.style.backgroundColor = 'orange';
-                } else {
-                    passwordStrength.style.backgroundColor = 'var(--success-color)';
-                }
-            });
-        }
-        
-        // Add animation to form inputs on focus
-        document.querySelectorAll('input, select').forEach(input => {
-            input.addEventListener('focus', () => {
-                input.parentElement.style.transform = 'scale(1.02)';
-            });
-            
-            input.addEventListener('blur', () => {
-                input.parentElement.style.transform = 'scale(1)';
-            });
         });
-    </script>
-</body>
-</html>
+    }
+
+    // Form Submit Animation
+    const signupForm = document.getElementById('signupForm');
+    const signupSpinner = document.getElementById('signupSpinner');
+    const signupText = document.getElementById('signupText');
+
+    signupForm.addEventListener('submit', function () {
+        signupSpinner.classList.remove('d-none');
+        signupText.textContent = 'Création du compte...';
+        signupForm.querySelector('button').disabled = true;
+    });
+</script>
+{% endblock %}

@@ -1,25 +1,92 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>{{ title }}</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 40px; }
-        form { max-width: 400px; margin: auto; }
-        label { display: block; margin-top: 10px; }
-        input, select { width: 100%; padding: 8px; margin-top: 5px; }
-        button { margin-top: 15px; padding: 10px 20px; background: #28a745; color: white; border: none; cursor: pointer; }
-        button:hover { background: #218838; }
-        a { display: block; margin-top: 10px; text-align: center; }
-    </style>
-</head>
-<body>
-    <h1>{{ title }}</h1>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Enregistrer</button>
-    </form>
-    <a href="{% url 'admin_dashboard' %}">Retour</a>
-</body>
-</html>
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}{{ title }} | EduConnect{% endblock %}
+
+{% block header %}
+    <i class="fas fa-cogs me-2"></i> {{ title }}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        {% for field in form %}
+                            <div class="mb-4">
+                                <label for="{{ field.id_for_label }}" class="form-label">
+                                    {{ field.label }}
+                                </label>
+                                {% if field.field.widget.input_type == 'checkbox' %}
+                                    <div class="form-check">
+                                        {{ field }}
+                                        <label class="form-check-label" for="{{ field.id_for_label }}">
+                                            {{ field.label }}
+                                        </label>
+                                    </div>
+                                {% else %}
+                                    {{ field }}
+                                {% endif %}
+                                {% if field.errors %}
+                                    <div class="text-danger small mt-1">
+                                        <i class="fas fa-exclamation-circle me-1"></i>
+                                        {% for error in field.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                {% if field.help_text %}
+                                    <small class="text-muted">{{ field.help_text }}</small>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+
+                        <!-- Actions -->
+                        <div class="d-flex justify-content-between mt-5">
+                            <a href="{% url back_url %}" class="btn btn-outline-secondary px-4">
+                                <i class="fas fa-arrow-left me-2"></i> Retour
+                            </a>
+                            <button type="submit" class="btn btn-primary px-5 d-flex align-items-center gap-2">
+                                <i class="fas fa-save"></i> Enregistrer
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Animation focus
+    document.querySelectorAll('input, select, textarea').forEach(el => {
+        el.addEventListener('focus', () => {
+            el.parentElement.classList.add('focused');
+        });
+        el.addEventListener('blur', () => {
+            el.parentElement.classList.remove('focused');
+        });
+    });
+
+    // Confirmation avant suppression (si formulaire de suppression)
+    document.querySelectorAll('form[method="post"][action*="delete"]').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            if (!confirm('Êtes-vous sûr de vouloir supprimer cet élément ? Cette action est irréversible.')) {
+                e.preventDefault();
+            }
+        });
+    });
+</script>
+<style>
+    .form-control:focus {
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+    }
+    .focused {
+        transform: scale(1.01);
+    }
+</style>
+{% endblock %}

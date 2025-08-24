@@ -1,0 +1,362 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Mes Étudiants - EduConnect{% endblock %}
+
+{% block header %}Gestion des Étudiants{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">Mes Étudiants</h5>
+
+        <!-- Bouton Ajouter -->
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStudentModal">
+            <i class="fas fa-plus me-1"></i> Ajouter un étudiant
+        </button>
+    </div>
+
+    <div class="card-body">
+        <!-- Filtre + Recherche -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" id="searchInput" class="form-control" placeholder="Rechercher un étudiant...">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <select id="classeFilter" class="form-select">
+                    <option value="">Toutes les classes</option>
+                    {% for classe in classes %}
+                    <option value="{{ classe.id }}" {% if classe_selected == classe.id %}selected{% endif %}>
+                        {{ classe.nom }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- Tableau -->
+        <div class="table-responsive">
+            <table class="table table-hover align-middle" id="studentsTable">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nom & Prénom</th>
+                        <th>Matricule</th>
+                        <th>Classe</th>
+                        <th>Email</th>
+                        <th>Téléphone</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for etudiant in etudiants %}
+                    <tr data-nom="{{ etudiant.nom }} {{ etudiant.prenom }}" data-classe="{{ etudiant.classe.id }}">
+                        <td>
+                            <strong>{{ etudiant.nom }}</strong> {{ etudiant.prenom|default:"" }}
+                        </td>
+                        <td><code>{{ etudiant.matricule }}</code></td>
+                        <td><span class="badge bg-primary">{{ etudiant.classe.nom }}</span></td>
+                        <td>{{ etudiant.email|default:"—" }}</td>
+                        <td>{{ etudiant.telephone|default:"—" }}</td>
+                        <td class="text-end">
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-sm btn-outline-info" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#viewStudentModal"
+                                        data-id="{{ etudiant.id }}"
+                                        data-nom="{{ etudiant.nom }}"
+                                        data-prenom="{{ etudiant.prenom }}"
+                                        data-matricule="{{ etudiant.matricule }}"
+                                        data-classe="{{ etudiant.classe.nom }}"
+                                        data-email="{{ etudiant.email }}"
+                                        data-telephone="{{ etudiant.telephone }}"
+                                        title="Voir les détails">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning edit-btn" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#editStudentModal"
+                                        data-id="{{ etudiant.id }}"
+                                        data-nom="{{ etudiant.nom }}"
+                                        data-prenom="{{ etudiant.prenom }}"
+                                        data-matricule="{{ etudiant.matricule }}"
+                                        data-classe="{{ etudiant.classe.id }}"
+                                        data-email="{{ etudiant.email }}"
+                                        data-telephone="{{ etudiant.telephone }}"
+                                        title="Modifier">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#deleteStudentModal"
+                                        data-id="{{ etudiant.id }}"
+                                        data-nom="{{ etudiant.nom }}"
+                                        data-prenom="{{ etudiant.prenom }}"
+                                        title="Supprimer">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-5">
+                            <i class="fas fa-users fa-2x mb-2 opacity-50"></i><br>
+                            Aucun étudiant trouvé.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if etudiants.has_other_pages %}
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if etudiants.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ etudiants.previous_page_number }}{% if classe_selected %}&classe={{ classe_selected }}{% endif %}">
+                        &laquo;
+                    </a>
+                </li>
+                {% endif %}
+                {% for i in etudiants.paginator.page_range %}
+                <li class="page-item {% if etudiants.number == i %}active{% endif %}">
+                    <a class="page-link" href="?page={{ i }}{% if classe_selected %}&classe={{ classe_selected }}{% endif %}">{{ i }}</a>
+                </li>
+                {% endfor %}
+                {% if etudiants.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ etudiants.next_page_number }}{% if classe_selected %}&classe={{ classe_selected }}{% endif %}">
+                        &raquo;
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modale : Ajouter un étudiant -->
+<div class="modal fade" id="addStudentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="post" action="{% url 'core:etudiant_create' %}" class="needs-validation" novalidate>
+            {% csrf_token %}
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-user-plus me-2"></i> Ajouter un étudiant</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Matricule *</label>
+                        <input type="text" name="matricule" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Nom *</label>
+                        <input type="text" name="nom" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Prénom</label>
+                        <input type="text" name="prenom" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Classe *</label>
+                        <select name="classe" class="form-select" required>
+                            <option value="">Sélectionner une classe</option>
+                            {% for classe in classes %}
+                            <option value="{{ classe.id }}">{{ classe.nom }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Téléphone</label>
+                        <input type="text" name="telephone" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Ajouter</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modale : Voir détails -->
+<div class="modal fade" id="viewStudentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-user me-2"></i> Détails de l'étudiant</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item"><strong>Nom :</strong> <span id="viewNom"></span></li>
+                    <li class="list-group-item"><strong>Prénom :</strong> <span id="viewPrenom"></span></li>
+                    <li class="list-group-item"><strong>Matricule :</strong> <span id="viewMatricule"></span></li>
+                    <li class="list-group-item"><strong>Classe :</strong> <span id="viewClasse"></span></li>
+                    <li class="list-group-item"><strong>Email :</strong> <span id="viewEmail"></span></li>
+                    <li class="list-group-item"><strong>Téléphone :</strong> <span id="viewTelephone"></span></li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modale : Modifier étudiant -->
+<div class="modal fade" id="editStudentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="post" id="editStudentForm" class="needs-validation" novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="id" id="editId">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-edit me-2"></i> Modifier l'étudiant</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Matricule *</label>
+                        <input type="text" name="matricule" id="editMatricule" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Nom *</label>
+                        <input type="text" name="nom" id="editNom" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Prénom</label>
+                        <input type="text" name="prenom" id="editPrenom" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Classe *</label>
+                        <select name="classe" id="editClasse" class="form-select" required>
+                            {% for classe in classes %}
+                            <option value="{{ classe.id }}">{{ classe.nom }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" id="editEmail" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Téléphone</label>
+                        <input type="text" name="telephone" id="editTelephone" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-warning text-white">Modifier</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modale : Supprimer -->
+<div class="modal fade" id="deleteStudentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2"></i> Confirmer la suppression</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Êtes-vous sûr de vouloir supprimer l'étudiant <strong id="deleteNom"></strong> ?</p>
+                <p class="text-danger">Cette action est irréversible.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <a href="#" class="btn btn-danger" id="confirmDeleteBtn">Supprimer</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Remplir la modale de visualisation
+    document.querySelectorAll('[data-bs-target="#viewStudentModal"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.getElementById('viewNom').textContent = btn.dataset.nom;
+            document.getElementById('viewPrenom').textContent = btn.dataset.prenom || '—';
+            document.getElementById('viewMatricule').textContent = btn.dataset.matricule;
+            document.getElementById('viewClasse').textContent = btn.dataset.classe;
+            document.getElementById('viewEmail').textContent = btn.dataset.email || '—';
+            document.getElementById('viewTelephone').textContent = btn.dataset.telephone || '—';
+        });
+    });
+
+    // Remplir la modale de modification
+    document.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.getElementById('editId').value = btn.dataset.id;
+            document.getElementById('editMatricule').value = btn.dataset.matricule;
+            document.getElementById('editNom').value = btn.dataset.nom;
+            document.getElementById('editPrenom').value = btn.dataset.prenom || '';
+            document.getElementById('editEmail').value = btn.dataset.email || '';
+            document.getElementById('editTelephone').value = btn.dataset.telephone || '';
+            document.getElementById('editClasse').value = btn.dataset.classe;
+        });
+    });
+
+    // Remplir la modale de suppression
+    document.querySelectorAll('[data-bs-target="#deleteStudentModal"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const nomComplet = btn.dataset.nom + (btn.dataset.prenom ? ' ' + btn.dataset.prenom : '');
+            document.getElementById('deleteNom').textContent = nomComplet;
+            document.getElementById('confirmDeleteBtn').href = `/etudiant/${btn.dataset.id}/delete/`;
+        });
+    });
+
+    // Recherche en temps réel
+    document.getElementById('searchInput').addEventListener('input', function () {
+        const term = this.value.toLowerCase();
+        document.querySelectorAll('#studentsTable tbody tr').forEach(tr => {
+            const text = tr.dataset.nom.toLowerCase();
+            tr.style.display = text.includes(term) ? '' : 'none';
+        });
+    });
+
+    // Filtre par classe
+    document.getElementById('classeFilter').addEventListener('change', function () {
+        const classeId = this.value;
+        document.querySelectorAll('#studentsTable tbody tr').forEach(tr => {
+            if (!classeId || tr.dataset.classe === classeId) {
+                tr.style.display = '';
+            } else {
+                tr.style.display = 'none';
+            }
+        });
+    });
+
+    // Validation Bootstrap
+    (function () {
+        'use strict';
+        const forms = document.querySelectorAll('.needs-validation');
+        Array.from(forms).forEach(form => {
+            form.addEventListener('submit', event => {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    })();
+</script>
+{% endblock %}

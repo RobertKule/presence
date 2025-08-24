@@ -1,0 +1,177 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Gestion des Étudiants | Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-user-graduate me-2"></i> Gestion des Étudiants</h2>
+        <div>
+            <a href="{% url 'core:etudiant_create' %}" class="btn btn-primary me-2">
+                <i class="fas fa-plus me-1"></i> Nouvel Étudiant
+            </a>
+            <a href="{% url 'core:admin_importer_etudiants' %}" class="btn btn-outline-success">
+                <i class="fas fa-file-import me-1"></i> Importer
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtres et Recherche -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <select name="classe" class="form-select">
+                        <option value="">Toutes les classes</option>
+                        {% for classe in classes %}
+                        <option value="{{ classe.id }}" {% if classe_selected == classe.id %}selected{% endif %}>
+                            {{ classe.nom }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-5">
+                    <input type="text" name="q" class="form-control" placeholder="Rechercher par nom, prénom ou matricule..." value="{{ query }}">
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-outline-primary w-100">
+                        <i class="fas fa-filter me-1"></i> Filtrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tableau -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Matricule</th>
+                            <th>Nom complet</th>
+                            <th>Classe</th>
+                            <th>Email</th>
+                            <th>Téléphone</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for etudiant in etudiants %}
+                        <tr>
+                            <td>
+                                <span class="badge bg-secondary">{{ etudiant.matricule }}</span>
+                            </td>
+                            <td>
+                                <strong>{{ etudiant.nom }} {{ etudiant.prenom|default:"" }}</strong>
+                            </td>
+                            <td>
+                                <span class="badge bg-primary">{{ etudiant.classe.nom }}</span>
+                            </td>
+                            <td>
+                                {% if etudiant.email %}
+                                <a href="mailto:{{ etudiant.email }}" class="text-decoration-none">
+                                    {{ etudiant.email }}
+                                </a>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if etudiant.telephone %}
+                                {{ etudiant.telephone }}
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-{{ etudiant.est_actif|yesno:'success,secondary' }}">
+                                    {{ etudiant.est_actif|yesno:"Actif,Inactif" }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{% url 'core:etudiant_update' etudiant.pk %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'core:etudiant_delete' etudiant.pk %}" class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">
+                                <i class="fas fa-user-graduate fa-2x mb-3" style="opacity: 0.3;"></i>
+                                <p>Aucun étudiant trouvé</p>
+                                {% if classe_selected %}
+                                <a href="?classe=" class="btn btn-outline-primary btn-sm me-2">
+                                    Voir tous les étudiants
+                                </a>
+                                {% endif %}
+                                <a href="{% url 'core:etudiant_create' %}" class="btn btn-primary btn-sm">
+                                    Ajouter un étudiant
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if etudiants.has_other_pages %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if etudiants.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ etudiants.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if classe_selected %}&classe={{ classe_selected }}{% endif %}">
+                    Précédent
+                </a>
+            </li>
+            {% endif %}
+            
+            {% for i in etudiants.paginator.page_range %}
+            <li class="page-item {% if etudiants.number == i %}active{% endif %}">
+                <a class="page-link" href="?page={{ i }}{% if query %}&q={{ query }}{% endif %}{% if classe_selected %}&classe={{ classe_selected }}{% endif %}">
+                    {{ i }}
+                </a>
+            </li>
+            {% endfor %}
+            
+            {% if etudiants.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ etudiants.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if classe_selected %}&classe={{ classe_selected }}{% endif %}">
+                    Suivant
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
+    <!-- Informations -->
+    <div class="alert alert-info mt-4">
+        <div class="d-flex">
+            <div class="me-3">
+                <i class="fas fa-info-circle fa-2x"></i>
+            </div>
+            <div>
+                <h6 class="alert-heading">Information</h6>
+                <p class="mb-0">
+                    Total: <strong>{{ etudiants.paginator.count }}</strong> étudiant{{ etudiants.paginator.count|pluralize }}
+                    {% if classe_selected %}
+                    dans la classe <strong>{{ classe_nom }}</strong>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

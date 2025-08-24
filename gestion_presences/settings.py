@@ -12,9 +12,9 @@ DEBUG = config("DEBUG", default=False, cast=bool)
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="127.0.0.1", cast=Csv())
 
 # Auth
-LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = 'dashboard'
-LOGOUT_REDIRECT_URL = 'login'
+LOGIN_URL = 'core:login'  
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = 'core:login'
 AUTH_USER_MODEL = "core.User"
 
 # ---------------------------
@@ -42,6 +42,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'core.middleware.EnseignantRestrictionMiddleware',
 ]
 
 ROOT_URLCONF = 'gestion_presences.urls'
@@ -71,7 +72,10 @@ DATABASES = {
         default=config("DATABASE_URL", default=f"sqlite:///{BASE_DIR}/dbpresence.sqlite3"),
         conn_max_age=600,
         ssl_require=False
-    )
+    ),
+    'OPTIONS': {
+            'timeout': 20,  # secondes
+        }
 }
 
 # ---------------------------
@@ -106,3 +110,4 @@ MEDIA_ROOT = BASE_DIR / "media"
 # Clé auto
 # ---------------------------
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+

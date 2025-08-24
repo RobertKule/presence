@@ -1,16 +1,123 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>Supprimer Cours</title>
-</head>
-<body>
-    <h1>Supprimer le cours</h1>
-    <p>Êtes-vous sûr de vouloir supprimer le cours <strong>{{ cours.nom }}</strong> ?</p>
-    <form method="post">
-        {% csrf_token %}
-        <button type="submit">Oui, supprimer</button>
-        <a href="{% url 'cours_list' %}">Annuler</a>
-    </form>
-</body>
-</html>
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Supprimer Cours | EduConnect{% endblock %}
+
+{% block header %}Supprimer le cours{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-lg border-danger">
+                <div class="card-header bg-danger text-white text-center">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Supprimer le cours
+                    </h4>
+                </div>
+                
+                <div class="card-body">
+                    <div class="alert alert-danger d-flex align-items-center">
+                        <i class="fas fa-exclamation-circle me-3 fs-4"></i>
+                        <div>
+                            <strong>Attention : Cette action est irréversible</strong>
+                            <p class="mb-0">Toutes les données associées à ce cours (séances, présences, etc.) seront également supprimées.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="course-details bg-light p-3 rounded mb-4">
+                        <h5 class="text-center mb-3">Détails du cours</h5>
+                        <div class="row mb-2">
+                            <div class="col-sm-4 fw-bold">Nom du cours :</div>
+                            <div class="col-sm-8">{{ cours.nom }}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-4 fw-bold">Classe :</div>
+                            <div class="col-sm-8">{{ cours.classe.nom }}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-4 fw-bold">Enseignant :</div>
+                            <div class="col-sm-8">{{ cours.enseignant.get_full_name }}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-4 fw-bold">Nombre de séances :</div>
+                            <div class="col-sm-8">{{ cours.seances.count }}</div>
+                        </div>
+                    </div>
+
+                    <form method="post" id="deleteForm">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-center gap-3">
+                            <button type="submit" class="btn btn-danger btn-lg">
+                                <i class="fas fa-trash-alt me-2"></i> Confirmer la suppression
+                            </button>
+                            <a href="{% url 'core:mes_cours' %}" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-times me-2"></i> Annuler
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Enhanced confirmation dialog
+        document.getElementById('deleteForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Custom confirmation modal using Bootstrap
+            const modalHtml = `
+                <div class="modal fade" id="confirmDeleteModal" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header bg-danger text-white">
+                                <h5 class="modal-title">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    Confirmation de suppression
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>Êtes-vous absolument sûr de vouloir supprimer le cours <strong>"{{ cours.nom }}"</strong> ?</p>
+                                <p>Cette action va supprimer :</p>
+                                <ul>
+                                    <li>{{ cours.seances.count }} séance(s)</li>
+                                    <li>Toutes les données de présence associées</li>
+                                </ul>
+                                <p class="text-danger"><strong>Cette opération ne peut pas être annulée.</strong></p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Confirmer la suppression</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Add modal to body
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            
+            // Show modal
+            const confirmModal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+            confirmModal.show();
+            
+            // Handle confirmation
+            document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+                document.getElementById('deleteForm').submit();
+            });
+            
+            // Clean up modal after hiding
+            document.getElementById('confirmDeleteModal').addEventListener('hidden.bs.modal', function() {
+                this.remove();
+            });
+        });
+    });
+</script>
+{% endblock %}

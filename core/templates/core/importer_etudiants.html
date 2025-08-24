@@ -1,0 +1,133 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Importer des Étudiants | EduConnect{% endblock %}
+
+{% block header %}Importer des Étudiants{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- Card principale -->
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-body p-5">
+                <div class="text-center mb-4">
+                    <i class="fas fa-file-excel text-success" style="font-size: 3rem;"></i>
+                    <h3 class="mt-3">Importer des Étudiants</h3>
+                    <p class="text-muted">Ajoutez plusieurs étudiants via un fichier Excel ou CSV</p>
+                </div>
+
+                <!-- Instructions -->
+                <div class="alert alert-info d-flex align-items-center mb-4" role="alert">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <div>
+                        <strong>Format du fichier :</strong> Colonne 1 : <strong>Matricule</strong>, Colonne 2 : <strong>Nom</strong>, Colonne 3 : <strong>Prénom</strong> (optionnel)
+                    </div>
+                </div>
+
+                <!-- Formulaire d'import -->
+                <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                    {% csrf_token %}
+
+                    <!-- Classe -->
+                    <div class="mb-4">
+                        <label for="{{ form.classe.id_for_label }}" class="form-label fw-medium">
+                            <i class="fas fa-building me-1 text-primary"></i> Classe
+                        </label>
+                        {{ form.classe }}
+                        {% if form.classe.errors %}
+                            <div class="text-danger small mt-1">
+                                <i class="fas fa-exclamation-circle me-1"></i>
+                                {% for error in form.classe.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Fichier -->
+                    <div class="mb-4">
+                        <label for="{{ form.fichier.id_for_label }}" class="form-label fw-medium">
+                            <i class="fas fa-upload me-1 text-primary"></i> Fichier Excel ou CSV
+                        </label>
+                        {{ form.fichier }}
+                        {% if form.fichier.errors %}
+                            <div class="text-danger small mt-1">
+                                <i class="fas fa-exclamation-circle me-1"></i>
+                                {% for error in form.fichier.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Mode -->
+                    <div class="mb-4">
+                        <label class="form-label fw-medium">
+                            <i class="fas fa-cogs me-1 text-primary"></i> Mode d'import
+                        </label>
+                        <div class="d-flex gap-3">
+                            {% for radio in form.mode %}
+                                <div class="form-check">
+                                    {{ radio.tag }}
+                                    <label class="form-check-label" for="{{ radio.id_for_label }}">
+                                        {{ radio.choice_label }}
+                                    </label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        {% if form.mode.errors %}
+                            <div class="text-danger small mt-1">
+                                <i class="fas fa-exclamation-circle me-1"></i>
+                                {% for error in form.mode.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Télécharger le modèle -->
+                    <div class="mb-4 p-3 bg-light rounded">
+                        <h6 class="mb-3"><i class="fas fa-download me-2 text-primary"></i> Télécharger un modèle</h6>
+                        <p class="small text-muted mb-2">
+                            Utilisez ce modèle pré-formaté pour structurer votre fichier.
+                        </p>
+                        <a href="{% url 'core:telecharger_modele_import' %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-download me-1"></i> Télécharger le modèle (Excel)
+                        </a>
+                    </div>
+
+                    <!-- Boutons -->
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'core:mes_etudiants' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-1"></i> Annuler
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-upload me-1"></i> Importer
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Validation Bootstrap
+    (function () {
+        'use strict';
+        const forms = document.querySelectorAll('.needs-validation');
+        Array.from(forms).forEach(form => {
+            form.addEventListener('submit', event => {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    })();
+
+    // Focus automatique
+    document.addEventListener('DOMContentLoaded', function () {
+        const firstInput = document.querySelector('input, select');
+        if (firstInput) firstInput.focus();
+    });
+</script>
+{% endblock %}

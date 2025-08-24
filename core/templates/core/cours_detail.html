@@ -1,0 +1,277 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}{{ cours.nom }} | EduConnect{% endblock %}
+
+{% block header %}
+    <i class="fas fa-book me-2"></i> {{ cours.nom }}
+    <span class="badge bg-secondary ms-2">{{ cours.get_type_cours_display }}</span>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">Tableau de bord</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'core:mes_cours' %}">Mes Cours</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ cours.nom }}</li>
+        </ol>
+    </nav>
+
+    <!-- Cours Info Header -->
+    <div class="row mb-5 g-4">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h4 class="text-primary mb-3">{{ cours.classe }}</h4>
+                    <p class="text-muted mb-3">{{ cours.description|default:"Aucune description." }}</p>
+                    <div class="row text-muted small">
+                        <div class="col-md-4 mb-2">
+                            <i class="fas fa-chalkboard-teacher me-2"></i> {{ cours.enseignant.get_full_name }}
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <i class="fas fa-users me-2"></i> {{ cours.etudiants_count }} étudiants
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <i class="fas fa-calendar-check me-2"></i> {{ cours.seances_count }} séances
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title mb-4">Taux de présence global</h5>
+                    <div class="flex-grow-1 d-flex align-items-center justify-content-center">
+                        <div style="width: 120px; height: 120px; position: relative;">
+                            <canvas id="presenceChart" width="120" height="120"></canvas>
+                        </div>
+                    </div>
+                    <div class="text-center mt-3">
+                        <span class="h5 text-success">{{ cours.taux_presence_global|floatformat:0 }}%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-4" id="coursTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="seances-tab" data-bs-toggle="tab" data-bs-target="#seances" type="button" role="tab">
+                <i class="fas fa-calendar-alt me-2"></i> Séances ({{ seances.count }})
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="stats-tab" data-bs-toggle="tab" data-bs-target="#stats" type="button" role="tab">
+                <i class="fas fa-chart-bar me-2"></i> Statistiques
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="etudiants-tab" data-bs-toggle="tab" data-bs-target="#etudiants" type="button" role="tab">
+                <i class="fas fa-users me-2"></i> Étudiants ({{ cours.etudiants_count }})
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="coursTabsContent">
+        <!-- Onglet Séances -->
+        <div class="tab-pane fade show active" id="seances" role="tabpanel">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5><i class="fas fa-list me-2"></i> Liste des séances</h5>
+                <a href="{% url 'core:seance_create' %}?cours={{ cours.pk }}" class="btn btn-sm btn-success">
+                    <i class="fas fa-plus-circle me-1"></i> Nouvelle séance
+                </a>
+            </div>
+            {% if seances %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Heure</th>
+                                <th>Salle</th>
+                                <th>Présence</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for s in seances %}
+                                <tr>
+                                    <td>{{ s.date|date:"d/m/Y" }}</td>
+                                    <td>{{ s.heure_debut|time:"H:i" }} → {{ s.heure_fin|time:"H:i" }}</td>
+                                    <td>{{ s.salle|default:"-" }}</td>
+                                    <td>
+                                        {% with taux=s.taux_presence|floatformat:0 %}
+                                        <span class="badge bg-{% if taux >= 75 %}success{% else %}danger{% endif %} rounded-pill">
+                                            {{ taux }}%
+                                        </span>
+                                        {% endwith %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{% url 'core:appel_presence' s.pk %}" class="btn btn-sm btn-outline-primary" title="Appel">
+                                                <i class="fas fa-user-check"></i>
+                                            </a>
+                                            <a href="{% url 'core:seance_update' s.pk %}" class="btn btn-sm btn-outline-warning" title="Modifier">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{% url 'core:seance_delete' s.pk %}" class="btn btn-sm btn-outline-danger" title="Supprimer">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-calendar-slash text-muted" style="font-size: 3rem; opacity: 0.3;"></i>
+                    <p class="text-muted mt-3">Aucune séance pour ce cours.</p>
+                    <a href="{% url 'core:seance_create' %}?cours={{ cours.pk }}" class="btn btn-primary mt-2">
+                        <i class="fas fa-plus-circle me-2"></i> Ajouter une séance
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Onglet Statistiques -->
+        <div class="tab-pane fade" id="stats" role="tabpanel">
+            <h5><i class="fas fa-chart-pie me-2"></i> Répartition des présences</h5>
+            <div class="mt-4">
+                <canvas id="statsChart" height="100"></canvas>
+            </div>
+
+            <h5 class="mt-5"><i class="fas fa-user me-2"></i> Taux de présence par étudiant</h5>
+            <div class="table-responsive mt-3">
+                <table class="table table-sm">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Étudiant</th>
+                            <th>Présent</th>
+                            <th>Retard</th>
+                            <th>Absent</th>
+                            <th>Motif</th>
+                            <th>Taux</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in stats.presences_par_etudiant %}
+                            <tr>
+                                <td>{{ item.etudiant.get_full_name }}</td>
+                                <td>{{ item.present }}</td>
+                                <td>{{ item.retard }}</td>
+                                <td>{{ item.absent }}</td>
+                                <td>{{ item.motif }}</td>
+                                <td>
+                                    {% with taux=item.taux_presence|floatformat:0 %}
+                                    <span class="badge bg-{% if taux >= 75 %}success{% else %}danger{% endif %} rounded-pill">
+                                        {{ taux }}%
+                                    </span>
+                                    {% endwith %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Onglet Étudiants -->
+        <div class="tab-pane fade" id="etudiants" role="tabpanel">
+            <h5><i class="fas fa-users me-2"></i> Liste des étudiants</h5>
+            <div class="row g-3 mt-3">
+                {% for etu in cours.classe.etudiants.all %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 shadow-sm border-0">
+                            <div class="card-body d-flex align-items-center">
+                                <img src="{% static 'img/avatar.png' %}" alt="Photo" class="rounded-circle me-3" width="50" height="50">
+                                <div>
+                                    <h6 class="mb-1">{{ etu.get_full_name }}</h6>
+                                    <small class="text-muted">{{ etu.matricule }}</small>
+                                </div>
+                                <span class="ms-auto badge bg-primary bg-opacity-10 text-primary px-2 py-1">
+                                    {{ etu.taux_presence_global|floatformat:0 }}%
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions rapides -->
+    <div class="mt-5 text-center">
+        <a href="{% url 'core:cours_update' cours.pk %}" class="btn btn-outline-primary me-2">
+            <i class="fas fa-edit me-2"></i> Modifier
+        </a>
+        <a href="{% url 'core:cours_delete' cours.pk %}" class="btn btn-outline-danger">
+            <i class="fas fa-trash me-2"></i> Supprimer
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Graphique de présence globale (donut)
+    const ctx1 = document.getElementById('presenceChart').getContext('2d');
+    new Chart(ctx1, {
+        type: 'doughnut',
+        data: {
+            labels: ['Présent', 'Absent'],
+            datasets: [{
+                data: [
+                    {{ cours.taux_presence_global|floatformat:0 }},
+                    {{ 100|floatformat:0|add:0 }} - {{ cours.taux_presence_global|floatformat:0 }}
+                ],
+                backgroundColor: ['#10b981', '#ef4444'],
+                borderWidth: 0,
+                cutout: '70%'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+
+    // Graphique répartition (bar)
+    const ctx2 = document.getElementById('statsChart').getContext('2d');
+    new Chart(ctx2, {
+        type: 'bar',
+        data: {
+            labels: ['Présent', 'Retard', 'Absent', 'Motif'],
+            datasets: [{
+                label: 'Nombre d\'occurrences',
+                data: [
+                    {{ stats.stats_globales.present }},
+                    {{ stats.stats_globales.retard }},
+                    {{ stats.stats_globales.absent }},
+                    {{ stats.stats_globales.motif }}
+                ],
+                backgroundColor: [
+                    '#10b981',
+                    '#f59e0b',
+                    '#ef4444',
+                    '#8b5cf6'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+</script>
+{% endblock %}

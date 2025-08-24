@@ -1,803 +1,241 @@
-<!DOCTYPE html>
-<html lang="fr" data-theme="light">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Statistiques | EduConnect</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        :root {
-            --primary-color: #4f46e5;
-            --primary-hover: #4338ca;
-            --text-color: #1f2937;
-            --bg-color: #f9fafb;
-            --card-bg: #ffffff;
-            --border-color: #e5e7eb;
-            --error-color: #ef4444;
-            --success-color: #10b981;
-            --warning-color: #f59e0b;
-            --info-color: #3b82f6;
-            --transition: all 0.3s ease;
-        }
+{% extends "core/base.html" %}
+{% load static %}
 
-        [data-theme="dark"] {
-            --primary-color: #6366f1;
-            --primary-hover: #818cf8;
-            --text-color: #f3f4f6;
-            --bg-color: #111827;
-            --card-bg: #1f2937;
-            --border-color: #374151;
-            --error-color: #f87171;
-            --success-color: #6ee7b7;
-            --warning-color: #fbbf24;
-            --info-color: #60a5fa;
-        }
+{% block title %}Statistiques | EduConnect{% endblock %}
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            transition: var(--transition);
-        }
+{% block header %}
+    <i class="fas fa-chart-pie me-2"></i> Statistiques de Présence
+{% endblock %}
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .logo {
-            width: 120px;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
-        }
-
-        .theme-toggle {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        .theme-toggle i {
-            font-size: 20px;
-            color: var(--text-color);
-        }
-
-        h1 {
-            color: var(--primary-color);
-            margin-bottom: 20px;
-            font-size: 28px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        h1 i {
-            font-size: 1.2em;
-        }
-
-        .back-link {
-            display: inline-flex;
-            align-items: center;
-            color: var(--primary-color);
-            text-decoration: none;
-            margin-bottom: 20px;
-            font-weight: 500;
-            gap: 8px;
-        }
-
-        .back-link:hover {
-            text-decoration: underline;
-        }
-
-        /* Accordion styles */
-        .accordion {
-            margin-bottom: 30px;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        }
-
-        .accordion-item {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            margin-bottom: 10px;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        .accordion-item:last-child {
-            margin-bottom: 0;
-        }
-
-        .accordion-header {
-            padding: 18px 20px;
-            background-color: var(--card-bg);
-            color: var(--text-color);
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: 600;
-            border-radius: 8px;
-        }
-
-        .accordion-header:hover {
-            background-color: rgba(79, 70, 229, 0.05);
-        }
-
-        .accordion-header.active {
-            background-color: rgba(79, 70, 229, 0.1);
-            border-bottom-left-radius: 0;
-            border-bottom-right-radius: 0;
-        }
-
-        .accordion-header i {
-            transition: transform 0.3s ease;
-        }
-
-        .accordion-header.active i {
-            transform: rotate(180deg);
-        }
-
-        .accordion-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease, padding 0.3s ease;
-        }
-
-        .accordion-content.active {
-            max-height: 2000px;
-            padding: 20px;
-            border-top: 1px solid var(--border-color);
-        }
-
-        /* Stats content */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .stat-card {
-            background-color: var(--bg-color);
-            border-radius: 8px;
-            padding: 15px;
-            text-align: center;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-
-        .stat-card h4 {
-            color: var(--text-color);
-            margin-bottom: 10px;
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .stat-card p {
-            font-size: 24px;
-            font-weight: 700;
-        }
-
-        .present { color: var(--success-color); }
-        .absent { color: var(--error-color); }
-        .retard { color: var(--warning-color); }
-        .motif { color: var(--info-color); }
-
-        .chart-container {
-            margin: 20px 0;
-            position: relative;
-            height: 300px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-            background-color: var(--card-bg);
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-
-        th, td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        th {
-            background-color: var(--primary-color);
-            color: white;
-            font-weight: 500;
-        }
-
-        tr:hover {
-            background-color: rgba(79, 70, 229, 0.05);
-        }
-
-        .btn-details {
-            background-color: transparent;
-            border: none;
-            color: var(--primary-color);
-            cursor: pointer;
-            font-weight: 500;
-            padding: 5px 10px;
-            border-radius: 4px;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .btn-details:hover {
-            background-color: rgba(79, 70, 229, 0.1);
-        }
-
-        /* Modal styles */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .modal.active {
-            display: flex;
-            opacity: 1;
-        }
-
-        .modal-content {
-            background-color: var(--card-bg);
-            border-radius: 12px;
-            width: 90%;
-            max-width: 600px;
-            max-height: 80vh;
-            overflow-y: auto;
-            padding: 25px;
-            box-shadow: 0 5px 25px rgba(0,0,0,0.2);
-            transform: translateY(-20px);
-            transition: transform 0.3s ease;
-        }
-
-        .modal.active .modal-content {
-            transform: translateY(0);
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .modal-title {
-            color: var(--primary-color);
-            font-size: 20px;
-            font-weight: 600;
-        }
-
-        .close-modal {
-            background: none;
-            border: none;
-            font-size: 24px;
-            color: var(--text-color);
-            cursor: pointer;
-            padding: 0 10px;
-        }
-
-        .modal-body {
-            margin-bottom: 20px;
-        }
-
-        .modal-footer {
-            display: flex;
-            justify-content: flex-end;
-            padding-top: 15px;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .btn {
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-weight: 500;
-            cursor: pointer;
-            border: none;
-            transition: var(--transition);
-        }
-
-        .btn-primary {
-            background-color: var(--primary-color);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background-color: var(--primary-hover);
-            transform: translateY(-2px);
-        }
-
-        /* Course navigation */
-        .course-nav {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            overflow-x: auto;
-            padding-bottom: 10px;
-            scrollbar-width: thin;
-        }
-
-        .course-nav::-webkit-scrollbar {
-            height: 6px;
-        }
-
-        .course-nav::-webkit-scrollbar-thumb {
-            background-color: var(--primary-color);
-            border-radius: 3px;
-        }
-
-        .course-tab {
-            padding: 10px 20px;
-            background-color: var(--bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            cursor: pointer;
-            white-space: nowrap;
-            font-weight: 500;
-        }
-
-        .course-tab:hover {
-            background-color: rgba(79, 70, 229, 0.1);
-        }
-
-        .course-tab.active {
-            background-color: var(--primary-color);
-            color: white;
-            border-color: var(--primary-color);
-        }
-
-        /* Responsive design */
-        @media (max-width: 768px) {
-            .stats-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-            
-            table {
-                display: block;
-                overflow-x: auto;
-            }
-
-            .accordion-header {
-                padding: 15px;
-                font-size: 15px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .accordion-content.active {
-                padding: 15px;
-            }
-            
-            th, td {
-                padding: 8px 10px;
-                font-size: 14px;
-            }
-
-            .course-nav {
-                gap: 8px;
-            }
-
-            .course-tab {
-                padding: 8px 15px;
-                font-size: 14px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='40' fill='%234f46e5'/><path d='M30,30 L70,70 M70,30 L30,70' stroke='white' stroke-width='8' stroke-linecap='round'/></svg>" alt="EduConnect Logo" class="logo">
-            <button class="theme-toggle" id="themeToggle">
-                <i class="fas fa-moon"></i>
-            </button>
+{% block content %}
+<div class="container-fluid px-4">
+    <!-- Filtre par cours -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-6">
+                    <label for="cours" class="form-label">Filtrer par cours</label>
+                    <select name="cours" id="cours" class="form-select" onchange="this.form.submit()">
+                        <option value="">Tous les cours</option>
+                        {% for c in cours_options %}
+                            <option value="{{ c.id }}" {% if c.id|stringformat:"s" == request.GET.cours %}selected{% endif %}>
+                                {{ c.nom }} - {{ c.classe.nom }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6 d-flex align-items-end justify-content-md-end">
+                    <a href="#" onclick="exportToPDF()" class="btn btn-outline-danger me-2">
+                        <i class="fas fa-file-pdf me-2"></i> PDF
+                    </a>
+                    <a href="#" onclick="exportToExcel()" class="btn btn-outline-success">
+                        <i class="fas fa-file-excel me-2"></i> Excel
+                    </a>
+                </div>
+            </form>
         </div>
-
-        <a href="{% url 'dashboard' %}" class="back-link">
-            <i class="fas fa-arrow-left"></i> Retour au dashboard
-        </a>
-
-        <h1><i class="fas fa-chart-pie"></i> Statistiques des présences</h1>
-
-        {% if not stats %}
-            <div class="stats-block">
-                <p>Aucun cours trouvé.</p>
-            </div>
-        {% else %}
-            <!-- Navigation tabs for courses (visible on mobile) -->
-            <div class="course-nav" id="courseNav">
-                {% for block in stats %}
-                    <div class="course-tab {% if forloop.first %}active{% endif %}" 
-                         data-target="course-{{ forloop.counter }}">
-                        {{ block.cours|truncatechars:20 }}
-                    </div>
-                {% endfor %}
-            </div>
-
-            <!-- Accordion for course stats -->
-            <div class="accordion" id="courseAccordion">
-                {% for block in stats %}
-                    <div class="accordion-item" id="course-{{ forloop.counter }}">
-                        <div class="accordion-header {% if forloop.first %}active{% endif %}">
-                            <span>{{ block.cours }} - Classe : {{ block.classe }}</span>
-                            <i class="fas fa-chevron-down"></i>
-                        </div>
-                        <div class="accordion-content {% if forloop.first %}active{% endif %}">
-                            <div class="stats-grid">
-                                <div class="stat-card">
-                                    <h4>Total séances</h4>
-                                    <p>{{ block.total_seances }}</p>
-                                </div>
-                                <div class="stat-card">
-                                    <h4>Présences</h4>
-                                    <p class="present">{{ block.global.present }}</p>
-                                </div>
-                                <div class="stat-card">
-                                    <h4>Absences</h4>
-                                    <p class="absent">{{ block.global.absent }}</p>
-                                </div>
-                                <div class="stat-card">
-                                    <h4>Retards</h4>
-                                    <p class="retard">{{ block.global.retard }}</p>
-                                </div>
-                                <div class="stat-card">
-                                    <h4>Avec motif</h4>
-                                    <p class="motif">{{ block.global.motif }}</p>
-                                </div>
-                            </div>
-
-                            <h3>Statistiques globales</h3>
-                            <div class="chart-container">
-                                <canvas id="global-chart-{{ forloop.counter }}"></canvas>
-                            </div>
-
-                            <h3>Détails par étudiant</h3>
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Étudiant</th>
-                                        <th>Présent</th>
-                                        <th>Absent</th>
-                                        <th>Retard</th>
-                                        <th>Motif</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for e in block.etudiants_stats %}
-                                    <tr>
-                                        <td>{{ e.etudiant }}</td>
-                                        <td class="present">{{ e.present }}</td>
-                                        <td class="absent">{{ e.absent }}</td>
-                                        <td class="retard">{{ e.retard }}</td>
-                                        <td class="motif">{{ e.motif }}</td>
-                                        <td>
-                                            <button class="btn-details" 
-                                                    onclick="openStudentModal('{{ forloop.parentloop.counter }}', '{{ forloop.counter }}', '{{ e.etudiant }}')">
-                                                <i class="fas fa-chart-bar"></i> Détails
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-        {% endif %}
     </div>
 
-    <!-- Modal for student details -->
-    <div class="modal" id="studentModal">
+    {% if stats %}
+        <!-- Accordion des cours -->
+        <div class="accordion" id="courseAccordion">
+            {% for s in stats %}
+                <div class="accordion-item mb-3 border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+                    <h2 class="accordion-header" id="heading-{{ s.cours.id }}">
+                        <button class="accordion-button bg-white text-dark rounded-0" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ s.cours.id }}" aria-expanded="true" aria-controls="collapse-{{ s.cours.id }}">
+                            <i class="fas fa-book me-2"></i>
+                            <strong>{{ s.cours.nom }}</strong>
+                            <span class="text-muted ms-2">• {{ s.cours.classe.nom }}</span>
+                            <span class="ms-auto badge bg-primary">{{ s.total_seances }} séances</span>
+                        </button>
+                    </h2>
+                    <div id="collapse-{{ s.cours.id }}" class="accordion-collapse collapse show" data-bs-parent="#courseAccordion">
+                        <div class="accordion-body bg-light p-4">
+                            <div class="row g-4 mb-4">
+                                <!-- Statistiques globales -->
+                                <div class="col-lg-8">
+                                    <h5><i class="fas fa-chart-pie me-2"></i> Répartition globale</h5>
+                                    <div class="chart-container" style="height: 300px;">
+                                        <canvas id="globalChart-{{ s.cours.id }}"></canvas>
+                                    </div>
+                                </div>
+                                <!-- Résumé chiffré -->
+                                <div class="col-lg-4">
+                                    <h5><i class="fas fa-info-circle me-2"></i> Totaux</h5>
+                                    <div class="list-group list-group-flush mt-3">
+                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span>Présents</span>
+                                            <span class="badge bg-success">{{ s.global.present }}</span>
+                                        </div>
+                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span>Retards</span>
+                                            <span class="badge bg-warning text-dark">{{ s.global.retard }}</span>
+                                        </div>
+                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span>Absents</span>
+                                            <span class="badge bg-danger">{{ s.global.absent }}</span>
+                                        </div>
+                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span>Motif</span>
+                                            <span class="badge bg-info">{{ s.global.motif }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tableau par étudiant -->
+                            <h5><i class="fas fa-users me-2"></i> Détails par étudiant</h5>
+                            <div class="table-responsive mt-3">
+                                <table class="table table-hover align-middle">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Étudiant</th>
+                                            <th>Présent</th>
+                                            <th>Retard</th>
+                                            <th>Absent</th>
+                                            <th>Motif</th>
+                                            <th>Taux</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for e in s.etudiants_stats %}
+                                            <tr>
+                                                <td>{{ e.etudiant.get_full_name }}</td>
+                                                <td>{{ e.present }}</td>
+                                                <td>{{ e.retard }}</td>
+                                                <td>{{ e.absent }}</td>
+                                                <td>{{ e.motif }}</td>
+                                                <td>
+                                                    <span class="badge bg-{% if e.taux_presence >= 75 %}success{% else %}danger{% endif %}">
+                                                        {{ e.taux_presence|floatformat:0 }}%
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#studentModal" data-name="{{ e.etudiant.get_full_name }}" data-stats='{"present": {{ e.present }}, "retard": {{ e.retard }}, "absent": {{ e.absent }}, "motif": {{ e.motif }}, "taux": {{ e.taux_presence|floatformat:0 }}}'>
+                                                        <i class="fas fa-chart-bar"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-chart-line text-muted" style="font-size: 5rem; opacity: 0.3;"></i>
+            <h4 class="text-muted mt-3">Aucune donnée disponible</h4>
+            <p class="text-muted">Aucun cours n’a encore de présences enregistrées.</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Modal Étudiant -->
+<div class="modal fade" id="studentModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title" id="modalStudentName"></h3>
-                <button class="close-modal" onclick="closeModal()">&times;</button>
+                <h5 class="modal-title" id="modalStudentName">Détails de l'étudiant</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <div class="chart-container" style="height: 250px;">
                     <canvas id="modalChart"></canvas>
                 </div>
-                <div id="modalDetails"></div>
+                <div id="modalDetails" class="mt-3"></div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-primary" onclick="closeModal()">Fermer</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
             </div>
         </div>
     </div>
+</div>
+{% endblock %}
 
-    <script>
-        // Theme toggle functionality
-        const themeToggle = document.getElementById('themeToggle');
-        const htmlElement = document.documentElement;
-        
-        // Check for saved theme preference or use preferred color scheme
-        const savedTheme = localStorage.getItem('theme') || 
-                           (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-        
-        // Apply the saved theme
-        htmlElement.setAttribute('data-theme', savedTheme);
-        
-        // Update icon based on theme
-        updateThemeIcon(savedTheme);
-        
-        // Toggle theme on button click
-        themeToggle.addEventListener('click', () => {
-            const currentTheme = htmlElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-            
-            htmlElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            
-            updateThemeIcon(newTheme);
-            
-            // Update charts for the new theme
-            updateCharts();
-        });
-        
-        function updateThemeIcon(theme) {
-            const icon = themeToggle.querySelector('i');
-            if (theme === 'dark') {
-                icon.classList.replace('fa-moon', 'fa-sun');
-            } else {
-                icon.classList.replace('fa-sun', 'fa-moon');
-            }
-        }
-
-        // Accordion functionality
-        const accordionHeaders = document.querySelectorAll('.accordion-header');
-        
-        accordionHeaders.forEach(header => {
-            header.addEventListener('click', () => {
-                const item = header.parentElement;
-                const content = header.nextElementSibling;
-                const isActive = header.classList.contains('active');
-                
-                // Close all items first
-                document.querySelectorAll('.accordion-header').forEach(h => {
-                    h.classList.remove('active');
-                    h.nextElementSibling.classList.remove('active');
-                });
-                
-                // Open clicked item if it was closed
-                if (!isActive) {
-                    header.classList.add('active');
-                    content.classList.add('active');
-                    
-                    // Update course nav to reflect active tab
-                    const courseId = item.id;
-                    document.querySelectorAll('.course-tab').forEach(tab => {
-                        tab.classList.remove('active');
-                        if (tab.dataset.target === courseId) {
-                            tab.classList.add('active');
-                        }
-                    });
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Générer les graphiques pour chaque cours
+    {% for s in stats %}
+        const ctx{{ s.cours.id }} = document.getElementById('globalChart-{{ s.cours.id }}').getContext('2d');
+        new Chart(ctx{{ s.cours.id }}, {
+            type: 'doughnut',
+            data: {
+                labels: ['Présent', 'Retard', 'Absent', 'Motif'],
+                datasets: [{
+                    data: [
+                        {{ s.global.present }},
+                        {{ s.global.retard }},
+                        {{ s.global.absent }},
+                        {{ s.global.motif }}
+                    ],
+                    backgroundColor: [
+                        '#10b981',
+                        '#f59e0b',
+                        '#ef4444',
+                        '#3b82f6'
+                    ],
+                    borderWidth: 0,
+                    cutout: '70%'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' }
                 }
-            });
-        });
-
-        // Course navigation tabs functionality
-        const courseTabs = document.querySelectorAll('.course-tab');
-        
-        courseTabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                const targetId = tab.dataset.target;
-                
-                // Update active tab
-                courseTabs.forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                
-                // Show corresponding accordion item
-                const targetItem = document.getElementById(targetId);
-                if (targetItem) {
-                    // Close all items first
-                    document.querySelectorAll('.accordion-header').forEach(h => {
-                        h.classList.remove('active');
-                        h.nextElementSibling.classList.remove('active');
-                    });
-                    
-                    // Open target item
-                    const header = targetItem.querySelector('.accordion-header');
-                    const content = targetItem.querySelector('.accordion-content');
-                    header.classList.add('active');
-                    content.classList.add('active');
-                    
-                    // Scroll to the item
-                    targetItem.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-            });
-        });
-
-        // Chart data
-        const statsData = {{ stats_json|safe }};
-        let modalChart = null;
-
-        // Initialize global charts
-        function initCharts() {
-            statsData.forEach((block, i) => {
-                // Global chart
-                const gctx = document.getElementById("global-chart-" + (i + 1));
-                if (gctx) {
-                    new Chart(gctx, {
-                        type: "pie",
-                        data: {
-                            labels: ["Présent", "Absent", "Retard", "Motif"],
-                            datasets: [{
-                                data: [block.global.present, block.global.absent, block.global.retard, block.global.motif],
-                                backgroundColor: [
-                                    getComputedStyle(document.documentElement).getPropertyValue('--success-color'),
-                                    getComputedStyle(document.documentElement).getPropertyValue('--error-color'),
-                                    getComputedStyle(document.documentElement).getPropertyValue('--warning-color'),
-                                    getComputedStyle(document.documentElement).getPropertyValue('--info-color')
-                                ],
-                                borderColor: getComputedStyle(document.documentElement).getPropertyValue('--card-bg'),
-                                borderWidth: 2
-                            }]
-                        },
-                        options: { 
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
-                                    labels: {
-                                        color: getComputedStyle(document.documentElement).getPropertyValue('--text-color')
-                                    }
-                                }
-                            }
-                        }
-                    });
-                }
-            });
-        }
-
-        // Update charts when theme changes
-        function updateCharts() {
-            // This would require destroying and recreating charts with new colors
-            // For simplicity, we'll just reload the page
-            window.location.reload();
-        }
-
-        // Modal functions
-        function openStudentModal(blockIndex, studentIndex, studentName) {
-            const block = statsData[blockIndex - 1];
-            const student = block.etudiants_stats[studentIndex - 1];
-            
-            document.getElementById('modalStudentName').textContent = studentName;
-            
-            // Create or update chart in modal
-            const ctx = document.getElementById('modalChart');
-            if (modalChart) {
-                modalChart.destroy();
-            }
-            
-            modalChart = new Chart(ctx, {
-                type: "bar",
-                data: {
-                    labels: ["Présent", "Absent", "Retard", "Motif"],
-                    datasets: [{
-                        label: studentName,
-                        data: [student.present, student.absent, student.retard, student.motif],
-                        backgroundColor: [
-                            getComputedStyle(document.documentElement).getPropertyValue('--success-color'),
-                            getComputedStyle(document.documentElement).getPropertyValue('--error-color'),
-                            getComputedStyle(document.documentElement).getPropertyValue('--warning-color'),
-                            getComputedStyle(document.documentElement).getPropertyValue('--info-color')
-                        ],
-                        borderColor: getComputedStyle(document.documentElement).getPropertyValue('--card-bg'),
-                        borderWidth: 1
-                    }]
-                },
-                options: { 
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    indexAxis: 'y',
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        x: {
-                            ticks: {
-                                color: getComputedStyle(document.documentElement).getPropertyValue('--text-color')
-                            },
-                            grid: {
-                                color: getComputedStyle(document.documentElement).getPropertyValue('--border-color')
-                            }
-                        },
-                        y: {
-                            ticks: {
-                                color: getComputedStyle(document.documentElement).getPropertyValue('--text-color')
-                            },
-                            grid: {
-                                color: getComputedStyle(document.documentElement).getPropertyValue('--border-color')
-                            }
-                        }
-                    }
-                }
-            });
-            
-            // Show additional details if needed
-            document.getElementById('modalDetails').innerHTML = `
-                <p><strong>Cours:</strong> ${block.cours}</p>
-                <p><strong>Classe:</strong> ${block.classe}</p>
-                <p><strong>Taux de présence:</strong> ${Math.round((student.present / block.total_seances) * 100)}%</p>
-            `;
-            
-            // Show modal
-            document.getElementById('studentModal').classList.add('active');
-        }
-
-        function closeModal() {
-            document.getElementById('studentModal').classList.remove('active');
-        }
-
-        // Initialize charts when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            initCharts();
-            
-            // Open first accordion item by default
-            const firstHeader = document.querySelector('.accordion-header');
-            if (firstHeader) {
-                firstHeader.click();
             }
         });
+    {% endfor %}
 
-        // Close modal when clicking outside
-        window.addEventListener('click', (event) => {
-            const modal = document.getElementById('studentModal');
-            if (event.target === modal) {
-                closeModal();
-            }
-        });
-    </script>
-</body>
-</html>
+    // Gérer le modal étudiant
+    const modal = document.getElementById('studentModal');
+    const modalChart = new Chart(document.getElementById('modalChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: ['Présent', 'Retard', 'Absent', 'Motif'],
+            datasets: [{
+                label: 'Présence',
+                data: [0, 0, 0, 0],
+                backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#3b82f6']
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+
+    modal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const name = button.getAttribute('data-name');
+        const stats = JSON.parse(button.getAttribute('data-stats'));
+
+        document.getElementById('modalStudentName').textContent = name;
+
+        modalChart.data.datasets[0].data = [stats.present, stats.retard, stats.absent, stats.motif];
+        modalChart.update();
+
+        document.getElementById('modalDetails').innerHTML = `
+            <p><strong>Taux de présence:</strong> ${stats.taux}%</p>
+        `;
+    });
+
+    // Export
+    function exportToPDF() {
+        const coursId = document.getElementById('cours').value || 'all';
+        window.location.href = `{% url 'core:export_pdf_statistiques' 0 %}`.replace('0', coursId);
+    }
+
+    function exportToExcel() {
+        const coursId = document.getElementById('cours').value || 'all';
+        window.location.href = `{% url 'core:export_excel' 0 %}`.replace('0', coursId);
+    }
+</script>
+{% endblock %}
