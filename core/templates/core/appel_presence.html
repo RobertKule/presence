@@ -75,6 +75,7 @@
     <!-- Liste des étudiants -->
     <form method="post" id="appelForm">
         {% csrf_token %}
+        <input type="hidden" name="presences_data" id="presencesData">
         <div class="table-responsive">
             <table class="table table-hover align-middle" id="studentsTable">
                 <thead class="table-light">
@@ -103,7 +104,6 @@
                                 <button type="button"
                                         class="btn btn-sm rounded-circle presence-btn"
                                         data-etudiant-id="{{ etudiant.id }}"
-                                        data-seance-id="{{ seance.id }}"
                                         data-statut="{{ statut }}"
                                         onclick="markPresence(this)">
                                     <i class="fas {{ icon }}"></i>
@@ -178,6 +178,9 @@
         default: '#e5e7eb'
     };
 
+    // Stockage local des présences
+    let presencesData = {};
+
     // Mettre à jour l'apparence d'un bouton
     function updateButton(btn, statut) {
         const icon = btn.querySelector('i');
@@ -195,63 +198,57 @@
         btn.style.opacity = 0.7;
     }
 
-    // Marquer une présence via AJAX
+    // Marquer une présence localement
     function markPresence(btn) {
         const etudiantId = btn.dataset.etudiantId;
-        const seanceId = btn.dataset.seanceId;
         const statut = btn.dataset.statut;
 
-        fetch('{% url "core:presence_rapide" %}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-CSRFToken': '{{ csrf_token }}',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: `etudiant_id=${etudiantId}&seance_id=${seanceId}&statut=${statut}`
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Réinitialiser tous les boutons de cet étudiant
-                document.querySelectorAll(`[data-etudiant-id="${etudiantId}"]`).forEach(resetButton);
-                
-                // Mettre à jour le bouton cliqué
-                updateButton(btn, statut);
+        // Stocker la présence localement
+        presencesData[etudiantId] = statut;
 
-                // Mettre à jour le taux de présence
-                updateTauxPresence();
-            } else {
-                alert('Erreur : ' + data.error);
-            }
-        })
-        .catch(err => console.error('Erreur:', err));
+        // Réinitialiser tous les boutons de cet étudiant
+        document.querySelectorAll(`[data-etudiant-id="${etudiantId}"]`).forEach(resetButton);
+        
+        // Mettre à jour le bouton cliqué
+        updateButton(btn, statut);
+
+        // Mettre à jour le taux de présence
+        updateTauxPresence();
     }
 
-    // Mettre à jour le taux de présence
+    // Mettre à jour le taux de présence localement
     function updateTauxPresence() {
-        fetch('{% url "core:api_stats_cours" seance.cours.id %}')
-        .then(response => response.json())
-        .then(data => {
-            if (data.taux_presence !== undefined) {
-                const badge = document.getElementById("tauxPresence");
-                badge.textContent = data.taux_presence + "%";
-                badge.classList.remove("bg-success", "bg-danger");
-                badge.classList.add(data.taux_presence >= 75 ? "bg-success" : "bg-danger");
-            }
-        });
+        const totalEtudiants = Object.keys(presencesData).length;
+        if (totalEtudiants === 0) return;
+
+        const totalPresents = Object.values(presencesData).filter(
+            statut => statut === 'present' || statut === 'retard'
+        ).length;
+
+        const taux = Math.round((totalPresents / totalEtudiants) * 100);
+        
+        const badge = document.getElementById("tauxPresence");
+        badge.textContent = taux + "%";
+        badge.classList.remove("bg-success", "bg-danger");
+        badge.classList.add(taux >= 75 ? "bg-success" : "bg-danger");
     }
 
     // Marquer tous les étudiants avec un statut
     function markAll(statut) {
         document.querySelectorAll(`[data-statut="${statut}"]`).forEach(btn => {
-            btn.click();
+            const etudiantId = btn.dataset.etudiantId;
+            presencesData[etudiantId] = statut;
+            document.querySelectorAll(`[data-etudiant-id="${etudiantId}"]`).forEach(resetButton);
+            updateButton(btn, statut);
         });
+        updateTauxPresence();
     }
 
     // Réinitialiser tous les boutons
     function resetAll() {
         document.querySelectorAll('.presence-btn').forEach(resetButton);
+        presencesData = {};
+        updateTauxPresence();
     }
 
     // Ajouter un étudiant
@@ -284,7 +281,6 @@
                             <button type="button"
                                     class="btn btn-sm rounded-circle presence-btn"
                                     data-etudiant-id="${data.etudiant.id}"
-                                    data-seance-id="{{ seance.id }}"
                                     data-statut="{{ statut }}"
                                     onclick="markPresence(this)">
                                 <i class="fas {{ icon }}"></i>
@@ -330,6 +326,9 @@
             .then(data => {
                 if (data.success) {
                     $(`#row-${etudiantId}`).remove();
+                    // Supprimer aussi des données locales si présent
+                    delete presencesData[etudiantId];
+                    updateTauxPresence();
                     alert('Étudiant supprimé avec succès !');
                 } else {
                     alert('Erreur : ' + data.error);
@@ -339,12 +338,19 @@
         }
     }
 
+    // Préparer les données avant soumission du formulaire
+    document.getElementById('appelForm').addEventListener('submit', function(e) {
+        // Mettre les données de présence dans le champ caché
+        document.getElementById('presencesData').value = JSON.stringify(presencesData);
+    });
+
     // Initialisation
     document.addEventListener('DOMContentLoaded', function () {
         const presences = JSON.parse('{{ presences|escapejs }}');
         
         // Appliquer les présences existantes
         for (const [etudiantId, statut] of Object.entries(presences)) {
+            presencesData[etudiantId] = statut;
             const btn = document.querySelector(`[data-etudiant-id="${etudiantId}"][data-statut="${statut}"]`);
             if (btn) updateButton(btn, statut);
         }
@@ -355,6 +361,9 @@
                 resetButton(btn);
             }
         });
+
+        // Mettre à jour le taux initial
+        updateTauxPresence();
     });
 </script>
 

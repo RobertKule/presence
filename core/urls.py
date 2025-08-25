@@ -38,7 +38,7 @@ urlpatterns = [
     path('seances/<int:pk>/modifier/', views.seance_update, name="seance_update"),
     path('seances/<int:pk>/supprimer/', views.seance_delete, name="seance_delete"),
     path('seances/<int:seance_id>/appel/', views.appel_presence, name="appel_presence"),
-    path('api/presence-rapide/', views.presence_rapide, name="presence_rapide"),
+    # path('api/presence-rapide/', views.presence_rapide, name="presence_rapide"),
 
     # -------------------------------
     # GESTION DES ÉTUDIANTS
@@ -61,8 +61,7 @@ urlpatterns = [
     path('api/presences/seance/<int:seance_id>/', views.api_presences_seance, name="api_presences_seance"),
     path('api/recherche/etudiants/', views.api_recherche_etudiants, name="api_recherche_etudiants"),
     path('api/recherche/cours/', views.api_recherche_cours, name="api_recherche_cours"),
-    path('api/presence-rapide/', views.presence_rapide, name="presence_rapide"),
-
+    
     path('seances/<int:seance_id>/ajouter-etudiant/', views.ajouter_etudiant_rapide, name="ajouter_etudiant_rapide"),
     path('api/stats/cours/<int:cours_id>/', views.api_stats_cours, name="api_stats_cours"),
     
