@@ -112,19 +112,43 @@
             color: var(--text);
             opacity: 0.7;
         }
+
+        /* Logo Presia */
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
     </style>
 </head>
 <body class="fade-in">
     
+    <!-- Logo avec lien vers la page d'accueil -->
+    <a href="{% url 'core:home' %}" class="logo mx-auto d-block text-center mt-3">
+        <i class="fas fa-graduation-cap"></i> Presia
+    </a>
+
     <!-- Theme Toggle Button -->
     <button id="themeToggle">
         <i class="fas fa-moon"></i>
     </button>
 
     <!-- Page Content -->
-    <main>
+    <main class="flex-grow-1">
         {% block content %}{% endblock %}
     </main>
+
+    <!-- Footer -->
+    <footer>
+        <p>
+            <a href="{% url 'core:home' %}" class="text-decoration-none">
+                <i class="fas fa-home"></i> Retour à l'accueil
+            </a>
+        </p>
+    </footer>
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

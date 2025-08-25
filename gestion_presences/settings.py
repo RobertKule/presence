@@ -92,7 +92,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalisation
 # ---------------------------
 LANGUAGE_CODE = "fr"
-TIME_ZONE = "Africa/Kinshasa"  # UTC+2
+TIME_ZONE = 'Africa/Johannesburg'  # UTC+2 toute l'année (Afrique du Sud)
 USE_I18N = True
 USE_TZ = True
 

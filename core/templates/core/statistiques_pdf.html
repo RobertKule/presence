@@ -3,23 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <title>Statistiques de Présence</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            color: #333;
+            margin: 0;
+            padding: 10px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 10px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 18px;
+            color: #0056b3;
+        }
+        .header p {
+            margin: 5px 0 0 0;
+            font-size: 11px;
+            color: #666;
+        }
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 10px;
+            color: #888;
+            padding: 10px 0;
+            border-top: 1px solid #eee;
+            background-color: #f9f9f9;
+        }
+        .content {
+            margin-bottom: 60px; /* Espace pour le footer fixe */
+        }
+        .page-break {
+            page-break-after: always;
+        }
+    </style>
 </head>
-<body style="font-family: Arial, sans-serif; font-size: 12px; color: #333; margin: 0; padding: 10px;">
-    <h2 style="text-align: center; margin-bottom: 20px;">Statistiques de Présence</h2>
+<body>
 
-    {% if stats %}
-        {% for s in stats %}
+    <!-- En-tête -->
+    <div class="header">
+        <h1>Presia App</h1>
+        <p>Système de gestion des présences - Statistiques</p>
+    </div>
+
+    <!-- Contenu principal -->
+    <div class="content">
+        <h2 style="text-align: center; margin-bottom: 20px;">Statistiques de Présence</h2>
+
+        {% if stats %}
             <div style="border: 1px solid #ddd; padding: 10px; margin-bottom: 15px; page-break-inside: avoid;">
                 <div style="font-weight: bold; margin-bottom: 10px; font-size: 14px;">
-                    {{ s.cours.nom }} - {{ s.cours.classe.nom }} ({{ s.total_seances }} séances)
+                    {{ stats.cours.nom }} - {{ stats.cours.classe.nom }} ({{ stats.total_seances }} séances)
                 </div>
                 <div>
                     <h6 style="margin: 5px 0;">Statistiques globales</h6>
                     <div style="display: table; width: 100%; text-align: center; margin-bottom: 10px;">
-                        <div style="display: table-cell; width: 25%;"><strong>{{ s.global.present }}</strong><br>Présents</div>
-                        <div style="display: table-cell; width: 25%;"><strong>{{ s.global.retard }}</strong><br>Retards</div>
-                        <div style="display: table-cell; width: 25%;"><strong>{{ s.global.absent }}</strong><br>Absents</div>
-                        <div style="display: table-cell; width: 25%;"><strong>{{ s.global.motif }}</strong><br>Motif</div>
+                        <div style="display: table-cell; width: 25%;"><strong>{{ stats.global.present }}</strong><br>Présents</div>
+                        <div style="display: table-cell; width: 25%;"><strong>{{ stats.global.retard }}</strong><br>Retards</div>
+                        <div style="display: table-cell; width: 25%;"><strong>{{ stats.global.absent }}</strong><br>Absents</div>
+                        <div style="display: table-cell; width: 25%;"><strong>{{ stats.global.motif }}</strong><br>Motif</div>
                     </div>
 
                     <h6 style="margin: 15px 0 5px 0;">Taux de présence par étudiant</h6>
@@ -35,7 +86,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for etu in s.etudiants_stats %}
+                            {% for etu in stats.etudiants_stats %}
                                 <tr>
                                     <td style="border: 1px solid #ccc; padding: 5px;">{{ etu.etudiant.get_full_name }}</td>
                                     <td style="border: 1px solid #ccc; padding: 5px; text-align: center;">{{ etu.present }}</td>
@@ -44,9 +95,13 @@
                                     <td style="border: 1px solid #ccc; padding: 5px; text-align: center;">{{ etu.motif }}</td>
                                     <td style="border: 1px solid #ccc; padding: 5px; text-align: center;">
                                         {% if etu.taux_presence >= 75 %}
-                                            <span style="display: inline-block; padding: 3px 6px; border-radius: 4px; color: white; background-color: green; font-size: 0.85em;">{{ etu.taux_presence|floatformat:0 }}%</span>
+                                            <span style="display: inline-block; padding: 3px 6px; border-radius: 4px; color: white; background-color: green; font-size: 0.85em;">
+                                                {{ etu.taux_presence|floatformat:0 }}%
+                                            </span>
                                         {% else %}
-                                            <span style="display: inline-block; padding: 3px 6px; border-radius: 4px; color: white; background-color: red; font-size: 0.85em;">{{ etu.taux_presence|floatformat:0 }}%</span>
+                                            <span style="display: inline-block; padding: 3px 6px; border-radius: 4px; color: white; background-color: red; font-size: 0.85em;">
+                                                {{ etu.taux_presence|floatformat:0 }}%
+                                            </span>
                                         {% endif %}
                                     </td>
                                 </tr>
@@ -55,12 +110,18 @@
                     </table>
                 </div>
             </div>
-        {% endfor %}
-    {% else %}
-        <div style="text-align: center; padding: 30px 0;">
-            <h4 style="margin: 5px 0;">Aucune donnée disponible</h4>
-            <p>Aucun cours n'a encore de séances ou de présences enregistrées.</p>
-        </div>
-    {% endif %}
+        {% else %}
+            <div style="text-align: center; padding: 30px 0;">
+                <h4>Aucune donnée disponible</h4>
+                <p>Aucun cours n'a encore de séances ou de présences enregistrées.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Pied de page -->
+    <div class="footer">
+        Presia 2025, tous droits réservés — Généré le {{ stats.date_generation|date:"d/m/Y" }} à {{ stats.date_generation|time:"H:i" }}
+    </div>
+
 </body>
 </html>

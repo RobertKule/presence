@@ -392,9 +392,11 @@ def appel_presence(request, seance_id):
     ]
     
     if request.method == "POST":
-        # Traitement de l'appel
+        # Traitement de l'appel - version avec données JSON
+        presences_data = json.loads(request.POST.get('presences_data', '{}'))
+        
         for etu in etudiants:
-            statut = request.POST.get(f"statut_{etu.id}", "absent")
+            statut = presences_data.get(str(etu.id), "absent")
             Presence.objects.update_or_create(
                 etudiant=etu,
                 seance=seance,
@@ -411,6 +413,7 @@ def appel_presence(request, seance_id):
         "statuts": statuts,
         "taux_presence": taux_presence
     })
+
 @login_required
 @user_passes_test(enseignant_required)
 def ajouter_etudiant_rapide(request, seance_id):
@@ -458,26 +461,6 @@ def ajouter_etudiant_rapide(request, seance_id):
     
     return JsonResponse({'success': False, 'error': 'Méthode non autorisée'})
 
-from django.http import JsonResponse
-
-from django.db import transaction
-
-def presence_rapide(request):
-    if request.method == "POST":
-        etudiant_id = request.POST.get("etudiant_id")
-        seance_id = request.POST.get("seance_id")
-        statut = request.POST.get("statut")
-
-        try:
-            with transaction.atomic():  # tout est atomique
-                presence, created = Presence.objects.update_or_create(
-                    etudiant_id=etudiant_id,
-                    seance_id=seance_id,
-                    defaults={"statut": statut}
-                )
-            return JsonResponse({"success": True})
-        except Exception as e:
-            return JsonResponse({"success": False, "error": str(e)})
 
 # -------------------
 # STATISTIQUES & RAPPORTS
@@ -643,7 +626,7 @@ def export_pdf_statistiques(request, cours_id):
             "motif": total_motif,
         },
         "etudiants_stats": etudiants_stats,
-        "date_generation": timezone.now().date()
+        "date_generation": timezone.now()  # ✅ Maintenant avec heure
     }
     
     html_string = render_to_string("core/statistiques_pdf.html", {"stats": stats})
@@ -661,8 +644,7 @@ def export_pdf_statistiques(request, cours_id):
         return HttpResponse("Erreur lors de la génération du PDF")
     
     return response
-
-# -------------------
+    # -------------------
 # GESTION DES ÉTUDIANTS
 # -------------------
 @login_required
@@ -771,6 +753,7 @@ def importer_etudiants(request):
         form.fields['classe'].queryset = classes_enseignant
     
     return render(request, "core/importer_etudiants.html", {"form": form})
+
 from django.http import HttpResponse
 from openpyxl import Workbook
 from django.contrib.auth.decorators import login_required
@@ -1236,7 +1219,7 @@ def admin_importer_etudiants(request):
                         msg += f", {etudiants_modifies} modifiés"
                     messages.success(request, msg)
                 
-                return redirect("etudiant_list")
+                return redirect("core:etudiant_list")
                 
             except Exception as e:
                 messages.error(request, f"Erreur lors de la lecture du fichier: {str(e)}")
