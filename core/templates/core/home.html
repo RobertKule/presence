@@ -5,10 +5,48 @@
 
 {% block content %}
 <!-- Hero Section -->
-<section class="bg-primary text-white py-5" style="background: linear-gradient(135deg, #4f46e5, #3b82f6);">
-  <div class="container">
+<section class="position-relative text-white py-5" style="overflow: hidden;min-height: 85vh;">
+  
+  <!-- Carousel en arrière-plan -->
+  <div id="heroCarousel" class="carousel slide position-absolute top-0 start-0 w-100 h-100" data-bs-ride="carousel" style="z-index: 1;">
+    <div class="carousel-inner h-100">
+
+      <!-- Image 1 -->
+      <div class="carousel-item active h-100">
+        <img src="{% static 'img/imagedash.png' %}" class="d-block w-100 h-100 object-fit-cover hero-img" alt="Dashboard Presia">
+      </div>
+
+      <!-- Image 2 -->
+      <div class="carousel-item h-100">
+        <img src="{% static 'img/bg_teacher_2.jpg' %}" class="d-block w-100 h-100 object-fit-cover hero-img" alt="Professeur en classe">
+      </div>
+
+      <!-- Image 3 -->
+      <div class="carousel-item h-100">
+        <img src="{% static 'img/bg_teacher_3.jpg' %}" class="d-block w-100 h-100 object-fit-cover hero-img" alt="Appel mobile Presia">
+      </div>
+
+      <!-- Image 4 -->
+      <div class="carousel-item h-100">
+        <img src="{% static 'img/bg_teacher_4.jpg' %}" class="d-block w-100 h-100 object-fit-cover hero-img" alt="Statistiques en temps réel">
+      </div>
+
+      <!-- Image 5 -->
+      <div class="carousel-item h-100">
+        <img src="{% static 'img/bg_teacher_african.jpg' %}" class="d-block w-100 h-100 object-fit-cover hero-img" alt="Gain de temps Presia">
+      </div>
+    </div>
+  </div>
+
+  <!-- Overlay sombre/dégradé -->
+  <div class="position-absolute top-0 start-0 w-100 h-100" 
+       style="background: linear-gradient(135deg, rgba(79,70,229,0.2), rgba(59,130,246,0.1)); z-index: 2;">
+  </div>
+
+  <!-- Contenu Hero -->
+  <div class="container position-relative" style="z-index: 3;">
     <div class="row align-items-center">
-      <div class="col-lg-6 mb-5 mb-lg-0">
+      <div class="col-lg-7 mb-5 mb-lg-0">
         <h1 class="display-4 fw-bold mb-3">Gérez les présences en un clin d’œil</h1>
         <p class="lead mb-4 opacity-90">
           Presia simplifie l'appel de présence pour les enseignants. 
@@ -23,15 +61,28 @@
           </a>
         </div>
       </div>
-      <div class="col-lg-6 text-center">
-        <img src="https://placehold.co/500x400/4f46e5/ffffff?text=Presia+App" 
-             alt="Interface Presia" 
-             class="img-fluid rounded shadow-lg" 
-             style="max-height: 400px; object-fit: cover;">
-      </div>
     </div>
   </div>
 </section>
+
+<style>
+  /* Images du hero */
+  .hero-img {
+    filter: blur(6px) brightness(0.8);
+    object-fit: cover;
+    transition: filter 0.5s ease-in-out;
+  }
+
+  /* Mode sombre : on rend encore plus sombre pour garder le contraste */
+  [data-theme="dark"] .hero-img {
+    filter: blur(6px) brightness(0.5);
+  }
+
+  /* Texte toujours lisible */
+  section h1, section p {
+    text-shadow: 0 3px 6px rgba(0,0,0,0.6);
+  }
+</style>
 
 <!-- Features Section -->
 <section class="py-5">
@@ -112,7 +163,7 @@
 
     <div class="row g-5 align-items-center">
       <div class="col-lg-6 order-lg-2">
-        <img src="https://placehold.co/500x300/6366f1/ffffff?text=Créer+un+cours" class="img-fluid rounded shadow">
+        <img src="{% static 'img/imageadd.png' %}" class="img-fluid rounded shadow">
       </div>
       <div class="col-lg-6">
         <div class="d-flex align-items-start mb-4">
@@ -127,7 +178,7 @@
 
     <div class="row g-5 align-items-center mt-4">
       <div class="col-lg-6">
-        <img src="https://placehold.co/500x300/10b981/ffffff?text=Appel+de+présence" class="img-fluid rounded shadow">
+        <img src="{% static 'img/image_appel.png' %}" class="img-fluid rounded shadow">
       </div>
       <div class="col-lg-6">
         <div class="d-flex align-items-start mb-4">
@@ -142,7 +193,7 @@
 
     <div class="row g-5 align-items-center mt-4">
       <div class="col-lg-6 order-lg-2">
-        <img src="https://placehold.co/500x300/f59e0b/ffffff?text=Statistiques" class="img-fluid rounded shadow">
+        <img src="{% static 'img/image_stats.png' %}" class="img-fluid rounded shadow">
       </div>
       <div class="col-lg-6">
         <div class="d-flex align-items-start mb-4">
