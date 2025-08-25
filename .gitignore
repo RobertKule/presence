@@ -1,1 +1,6 @@
 env
+__pycache__/
+*.pyc
+core/migrations/0001_initial.py
+core/templatetags/__pycache__/math_extras.cpython-313.pyc
+.env
